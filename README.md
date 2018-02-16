@@ -69,6 +69,8 @@ Stroke Type  | Name             | Data Code
 
 All the stroke data types are *weighted*, meaning the amount of space to kern depends on the combination of stroke types between two characters.
 
+[KernBot Stroke Types Concept](./images/KernBot-concept.jpg)
+
 The weighted stroke types are defined below (and may need adjusting):
 ```
 ------+-----------------------
