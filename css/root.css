@@ -1,0 +1,125 @@
+/* calc( calc(4 * var(--baselineUnit)) / calc(var(--baseFontEm) * var(--baseFontSize)) ); */
+:root {
+
+	/* TYPOGRAPHY */
+	--baseFontFamily: 'Futura W01', helvetica, sans-serif;
+	--baseFontHeaders: 'Futura W01', helvetica, sans-serif;
+	--baseFontMono: monospace;
+	
+	--baseFontSize: 18;
+	--baselineUnit: 8px;
+	--baseFontEm: 1em;
+	--baselineMltp: 4;
+	--ratioMS: 1.5;
+
+	--msDown1: 	calc( var(--baseFontEm)	/	var(--ratioMS) );
+	--msDown2: 	calc( var(--msDown1)	/	var(--ratioMS) );
+	--msDown3: 	calc( var(--msDown2)	/	var(--ratioMS) );
+	--msDown4:	calc( var(--msDown3)	/	var(--ratioMS) );
+	--msDown5:	calc( var(--msDown4)	/	var(--ratioMS) );
+	--msUp1:	calc( var(--baseFontEm)	*	var(--ratioMS) );
+	--msUp2:	calc( var(--msUp1)		*	var(--ratioMS) );
+	--msUp3:	calc( var(--msUp2)		*	var(--ratioMS) );
+	--msUp4:	calc( var(--msUp3)		*	var(--ratioMS) );
+	--msUp5:	calc( var(--msUp4)		*	var(--ratioMS) );
+	--msUp6:	calc( var(--msUp5)		*	var(--ratioMS) );
+	--msUp7:	calc( var(--msUp6)		*	var(--ratioMS) );
+	--msUp8:	calc( var(--msUp7)		*	var(--ratioMS) );
+	--msUp9:	calc( var(--msUp8)		*	var(--ratioMS) );
+	--msUp10:	calc( var(--msUp9)		*	var(--ratioMS) );
+
+	/*
+	baselineMltp * baselineUnit /
+	baseFontEm * baseFontSize
+	30px / 15px = 2
+	*/
+	--htmlFontSize: calc( var(--baseFontSize) / 16 );
+	--baselineRatio: calc( var(--baselineMltp) * var(--baselineUnit) );
+	--baseFontRatio: calc( var(--baseFontEm) * var(--baseFontSize) );
+	--baseLineHeight: calc( var(--baselineRatio) / var(--baseFontRatio) );
+
+	/* COLORS */
+	--black: #000000;
+	--white: #ffffff;
+
+	/* BUTTONS */
+	--btnFont: sans-serif;
+	--btnPadding: var(--msDown3) var(--msDown1);
+	--btnSpacer: var(--msDown3);
+	--btnFocus: #0066FF auto 2px;
+	--btnRadius: 0px;
+	/* COLOR OPTIONS */
+		/* DEFAULT */
+		--btnDefaultColor: #ffffff;
+		--btnDefaultBkg: #000000;
+		--btnDefaultBorder: 1px solid #000000;
+		--btnDefaultDisabled: #808080;
+		--btnDefaultHoverBkg: #4d4d4d;
+		--btnDefaultHoverBorder: #000000;
+		/* PRIMARY */
+		--btnPrimaryColor: #ffffff;
+		--btnPrimaryBkg: #0066FF;
+		--btnPrimaryBorder: 1px solid #0066FF;
+		--btnPrimaryDisabled: #808080;
+		--btnPrimaryHoverBkg: #3385ff;
+		--btnPrimaryHoverBorder: #0066FF;
+		/* SECONDARY */
+		--btnSecondaryColor: #ffffff;
+		--btnSecondaryBkg: #d4af37;
+		--btnSecondaryBorder: 1px solid #d4af37;
+		--btnSecondaryDisabled: #808080;
+		--btnSecondaryHoverBkg: #ddd061;
+		--btnSecondaryHoverBorder: #d4af37;
+		/* TERTIARY */
+		--btnTertiaryColor: #ffffff;
+		--btnTertiaryBkg: #D42C2C;
+		--btnTertiaryBorder: 1px solid #D42C2C;
+		--btnTertiaryDisabled: #808080;
+		--btnTertiaryHoverBkg: #dd5656;
+		--btnTertiaryHoverBorder: #D42C2C;
+		/* SUCCESS */
+		--btnSuccessColor: #ffffff;
+		--btnSuccessBkg: #33CC33;
+		--btnSuccessBorder: 1px solid #33CC33;
+		--btnSuccessDisabled: #808080;
+		--btnSuccessHoverBkg: #5cd65c;
+		--btnSuccessHoverBorder: #33CC33;
+		/* INFO */
+		--btnInfoColor: #ffffff;
+		--btnInfoBkg: #0066FF;
+		--btnInfoBorder: 1px solid #0066FF;
+		--btnInfoDisabled: #808080;
+		--btnInfoHoverBkg: #3385ff;
+		--btnInfoHoverBorder: #0066FF;
+		/* WARNING */
+		--btnWarningColor: #ffffff;
+		--btnWarningBkg: #FFCC00;
+		--btnWarningBorder: 1px solid #FFCC00;
+		--btnWarningDisabled: #808080;
+		--btnWarningHoverBkg: #d4af37;
+		--btnWarningHoverBorder: #FFCC00;
+		/* ERROR */
+		--btnErrorColor: #ffffff;
+		--btnErrorBkg: #FF6600;
+		--btnErrorBorder: 1px solid #FF6600;
+		--btnErrorDisabled: #808080;
+		--btnErrorHoverBkg: #ff8533;
+		--btnErrorHoverBorder: #FF6600;
+
+
+}
+
+/* BASE */
+* {
+	-webkit-box-sizing: border-box;
+	   -moz-box-sizing: border-box;
+	        box-sizing: border-box;
+}
+html {
+	height: 100%;
+	width: 100%;
+}
+body {
+	min-height: 100vh;
+	max-width: 100vw;
+}

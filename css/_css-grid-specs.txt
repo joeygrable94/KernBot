@@ -1,0 +1,99 @@
+
+//	PARENT PROPERTIES
+// ============================================================
+.GridParent {
+	
+	// GRIDPARENT
+	// Declare GRID in the display property.
+	display: grid;								// grid | inline-grid | subgrid;
+
+	// Defines the COLUMNS and ROWS of the GRID with a space-separated list of values. 
+	grid-template-columns: 1fr 1fr;				// <track-size> ... | <line-name> <track-size> ...;
+	grid-template-rows: 1fr 1fr;				// <track-size> ... | <line-name> <track-size> ...;
+
+		// EX1: [track-size]
+		grid-template-columns: 40px 50px auto 50px 40px;
+		grid-template-rows: 25% 100px auto;
+
+		// EX2: [line-name]
+		grid-template-columns: ["first"] 40px ["line2"] 50px ["line3"] auto ["col4-start"] 50px ["five"] 40px ["end"];
+		grid-template-rows: ["row1-start"] 25% ["row1-end"] 100px ["third-line"] auto ["last-line"];
+
+		// EX1:
+		grid-template-columns: 100px 50px 100px;
+		grid-template-rows: 80px auto 80px;
+
+	// GRID LINES
+	// Specifies the size of the GRID lines.
+	grid-column-gap: 10px;						// <line-size>;
+	grid-row-gap: 4em;							// <line-size>;
+	grid-gap: 20px 2em;							// shorthand for: <grid-row-gap> <grid-column-gap>;
+
+	// Shorthand GRID creation
+	grid:;										// none | <grid-template-rows> / <grid-template-columns> | <grid-auto-flow> [<grid-auto-rows> [/ <grid-auto-columns>]];
+
+	// SPACING & ALIGNMENT
+	// Aligns the CONTENT inside a grid item along the row AXIS.
+	justify-items: start;						// start | end | center | stretch;
+
+	// Aligns the CONTENT inside a grid item along the COLUMN.
+	align-items: start;							// start | end | center | stretch;
+
+	// This property aligns the GRID along the ROW axis.
+	justify-content: start;						// start | end | center | stretch | space-around | space-between | space-evenly;
+
+	// This property aligns the GRID along the COLUMN axis
+	align-content: start;						// start | end | center | stretch | space-around | space-between | space-evenly;
+
+}
+
+
+
+
+
+//	CHILDREN PROPERTIES
+// ============================================================
+.GridChild {
+
+	// GRIDCHILD
+	// Determines a grid item's location within the grid by referring to specific grid lines.
+	grid-column-start:; 						// <number> | <name> | span <number> | span <name> | auto;
+	grid-column-end:;							// <number> | <name> | span <number> | span <name> | auto;
+	grid-row-start:;							// <number> | <name> | span <number> | span <name> | auto;
+	grid-row-end:;								// <number> | <name> | span <number> | span <name> | auto;
+
+		// EX1:
+		grid-column-start: 2;
+		grid-column-end: five;
+		grid-row-start: row1-start;
+		grid-row-end: span 3;
+
+	// Shorthand 
+	grid-column:;								// <start-line> / <end-line> | <start-line> / span <value>;
+	grid-row:;									// <start-line> / <end-line> | <start-line> / span <value>;
+
+		// EX1:
+		grid-column: 3 / span 2;
+		grid-row: third-line / 4;
+
+	// Short-shorthand for grid-row-start + grid-column-start + grid-row-end + grid-column-end
+	grid-area:;									// <name> | <row-start> / <column-start> / <row-end> / <column-end>;
+
+		// EX1: by grid-area name
+		grid-area: header
+
+		// EX2: columns & rows
+		grid-area: 1 / col4-start / last-line / 6
+
+	// SPACING & ALIGMNENT
+	// Aligns the CONTENT inside a grid item along the ROW axis
+	justify-self:;				// start | end | center | stretch;
+
+	// Aligns along the CONTENT inside a grid item align the COLUMN axis
+	align-self:;				// start | end | center | stretch;
+
+}
+
+
+
+

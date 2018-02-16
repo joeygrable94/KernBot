@@ -1,0 +1,241 @@
+/* BASE */
+html {
+	font-size: calc( var(--baseFontSize)/16 * 100%);
+	-webkit-text-size-adjust: 100%;
+	-ms-text-size-adjust: 100%;
+}
+
+body {
+	line-height: calc( calc(var(--baselineMltp) * var(--baselineUnit)) / calc(var(--baseFontEm) * var(--baseFontSize)) );
+	margin: 0;
+	padding: 0;
+	border: 0;
+	vertical-align: baseline;
+	font-family: var(--baseFontFamily);
+	font-weight: 400;
+	color: var(--black);
+}
+
+
+
+
+
+/* HEADERS SETTINGS
+[1] Applies a margin bottom that is a multiple of the vertical grid in EMs. The first argument is the font size context and the second is multiple of the vertical grid unit.
+[2] Sets the type to one of the modular scale values and the second argument sets a unitless line-height as a multiple of the vertical grid.
+[3] A generic media query for tablet size ranges.
+[4] Applies a margin bottom that is the same vertical grid value as the mobile first rule.
+[5] Sets the type to one of the modular scale values and the second argument sets a unitless line-height as a multiple of the vertical grid.
+*/
+h1, .h1,
+h2, .h2,
+h3, .h3,
+h4, .h4,
+h5, .h5,
+h6, .h6 {
+	margin-top: 0;
+	padding-top: 0;
+	padding-bottom: 0;
+	font-family: var(--baseFontHeaders);
+	font-weight: bold;
+}
+h1, .h1 {
+	margin-bottom: calc( calc(1 * var(--baselineUnit)) / calc(var(--msUp2) * var(--baseFontSize)) );
+	font-size: var(--msUp2);
+	line-height: calc( calc(8 * var(--baselineUnit)) / calc(var(--msUp2) * var(--baseFontSize)) );
+}
+h2, .h2 {
+	margin-bottom: calc( calc(1 * var(--baselineUnit)) / calc(var(--msUp1) * var(--baseFontSize)) );
+	font-size: var(--msUp1);
+	line-height: calc( calc(6 * var(--baselineUnit)) / calc(var(--msUp1) * var(--baseFontSize)) );
+}
+h3, .h3 {
+	margin-bottom: calc( calc(1 * var(--baselineUnit)) / calc(var(--msUp1) * var(--baseFontSize)) );
+	font-size: var(--msUp1);
+	line-height: calc( calc(6 * var(--baselineUnit)) / calc(var(--msUp1) * var(--baseFontSize)) );
+}
+h4, .h4 {
+	margin-bottom: calc( calc(1 * var(--baselineUnit)) / calc(var(--msUp1) * var(--baseFontSize)) );
+	font-size: var(--msUp1);
+	line-height: calc( calc(6 * var(--baselineUnit)) / calc(var(--msUp1) * var(--baseFontSize)) );
+}
+h5, .h5,
+h6, .h6 {
+	margin-bottom: calc( calc(1 * var(--baselineUnit)) / calc(var(--baseFontEm) * var(--baseFontSize)) );
+	font-size: var(--baseFontEm);
+	line-height: calc( calc(4 * var(--baselineUnit)) / calc(var(--baseFontEm) * var(--baseFontSize)) );
+}
+
+
+
+
+
+/* RESPONSIVE */
+@media (min-width: 43.75em) {
+	h1, .h1 {
+		margin-bottom: calc( calc(1 * var(--baselineUnit)) / calc(var(--msUp3) * var(--baseFontSize)) );
+		font-size: var(--msUp3);
+		line-height: calc( calc(10 * var(--baselineUnit)) / calc(var(--msUp3) * var(--baseFontSize)) );
+	}
+	h2, .h2 {
+		margin-bottom: calc( calc(1 * var(--baselineUnit)) / calc(var(--msUp2) * var(--baseFontSize)) );
+		font-size: var(--msUp2);
+		line-height: calc( calc(6 * var(--baselineUnit)) / calc(var(--msUp2) * var(--baseFontSize)) );
+	}
+	p { text-align: justify; }
+}
+@media (min-width: 56.25em) {
+	h1, .h1 {
+		margin-bottom: calc( calc(1 * var(--baselineUnit)) / calc(var(--msUp4) * var(--baseFontSize)) );
+		font-size: var(--msUp4);
+		line-height: calc( calc(12 * var(--baselineUnit)) / calc(var(--msUp4) * var(--baseFontSize)) );
+	}
+	h2, .h2 {
+		margin-bottom: calc( calc(1 * var(--baselineUnit)) / calc(var(--msUp3) * var(--baseFontSize)) );
+		font-size: var(--msUp3);
+		line-height: calc( calc(8 * var(--baselineUnit)) / calc(var(--msUp3) * var(--baseFontSize)) );
+	}
+	h3, .h3 {
+		margin-bottom: calc( calc(1 * var(--baselineUnit)) / calc(var(--msUp2) * var(--baseFontSize)) );
+		font-size: var(--msUp2);
+		line-height: calc( calc(6 * var(--baselineUnit)) / calc(var(--msUp2) * var(--baseFontSize)) );
+	}
+}
+
+
+
+
+
+/* PARAGRAPH SETTINGS */
+p {
+	margin-bottom: calc( calc(4 * var(--baselineUnit)) / calc(var(--baseFontEm) * var(--baseFontSize)) );
+}
+/* paragraph-indent */
+p + p {
+	margin-top: calc( calc(-4 * var(--baselineUnit)) / calc(var(--baseFontEm) * var(--baseFontSize)) );
+	text-indent: var(--baseFontEm);
+}
+
+
+
+
+
+/* BLOCKQUOTES */
+blockquote {
+	margin-top: calc( calc(4 * var(--baselineUnit)) / calc(var(--baseFontEm) * var(--baseFontSize)) );
+	margin-bottom: calc( calc(4 * var(--baselineUnit)) / calc(var(--baseFontEm) * var(--baseFontSize)) );
+	margin-left: 0;
+	padding-top: 0;
+	padding-bottom: 0;
+	padding-left: calc( calc(4 * var(--baselineUnit)) / calc(var(--baseFontEm) * var(--baseFontSize)) );
+	border-left: 8 solid var(--black);
+	font-family: var(--baseFontFamily);
+}
+blockquote p {
+	margin-bottom: calc( calc(2 * var(--baselineUnit)) / calc(var(--baseFontEm) * var(--baseFontSize)) );
+}
+blockquote footer cite:before { content: " – "; }
+
+
+
+
+
+/* CODE */
+pre, code {
+	font-family: var(--baseFontMono);
+	border: 1px solid #cacaca;
+	-webkit-border-radius: 5px;
+	border-radius: 5px;
+	padding: 2px 5px;
+	display: inline;
+}
+pre {
+	display: block;
+	padding: calc( calc(1 * var(--baselineUnit)) / calc(var(--baseFontEm) * var(--baseFontSize)) );
+	margin-bottom: calc( calc(4 * var(--baselineUnit)) / calc(var(--baseFontEm) * var(--baseFontSize)) );
+	background-color: var(--black);
+	color: var(--white);
+}
+
+
+
+
+
+/* TIME */
+time, .time { text-transform: uppercase; }
+
+
+
+
+
+/* ADDRESS */
+address {
+	margin-bottom: calc( calc(4 * var(--baselineUnit)) / calc(var(--baseFontEm) * var(--baseFontSize)) );
+}
+
+
+
+
+
+/* LISTS */
+ol, ul, dl {
+	margin-bottom: calc( calc(4 * var(--baselineUnit)) / calc(var(--baseFontEm) * var(--baseFontSize)) );
+	margin-left: calc( calc(4 * var(--baselineUnit)) / calc(var(--baseFontEm) * var(--baseFontSize)) );
+}
+ul ul,
+ol ol,
+dl dl { margin-left: 0; }
+ul { list-style: disc; }
+ol { list-style: decimal; }
+dt { text-decoration: underline; }
+dt:after { content: ': '; }
+dd { margin-left: calc( calc(4 * var(--baselineUnit)) / calc(var(--baseFontEm) * var(--baseFontSize)) ); }
+
+
+
+
+
+/* PROPERTY STYLES */
+small, .font-small {
+	font-size: var(--msDown1);
+	line-height: calc( calc(3 * var(--baselineUnit)) / calc(var(--msDown1) * var(--baseFontSize)) );
+}
+em, b, strong { font-weight: bold; }
+i {
+	font-style: italic;
+	&.light { font-weight: lighter; }
+	&.normal { font-weight: normal; }
+	&.bold { font-weight: bolder; }
+}
+
+
+
+
+
+/* FONT STYLING */
+.font-base {
+	font-family: var(--baseFontFamily) !important;
+}
+.font-contrast {
+	font-family: var(--baseFontHeaders) !important;
+}
+
+
+
+
+
+/* SPECIAL CASES */
+abbr {
+	font-variant: small-caps;
+	font-weight: 600;
+	text-transform: lowercase;
+}
+/* Cursor changed to a question mark when it has a title */
+abbr[title]:hover { cursor: help; }
+/* Creates horizontal rules that obey the baseline. */
+hr {
+	margin-top: calc( calc(4 * var(--baselineUnit)) / calc(var(--baseFontEm) * var(--baseFontSize)) );
+	margin-bottom: calc( calc(4 * var(--baselineUnit)) / calc(var(--baseFontEm) * var(--baseFontSize)) );
+	border: none;
+	border-top: 1px solid var(--black);
+}

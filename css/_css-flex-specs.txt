@@ -1,0 +1,63 @@
+
+//	PARENT PROPERTIES
+// ============================================================
+.FlexParent {
+
+	// FLEX
+	// Declare FLEX in display property
+	display: flex;							// flex | inline-flex;
+	
+	// Establish the main-axis
+	flex-direction: row; 					// row | row-reverse | column | column-reverse;
+
+	// Determine if wrap on multiple lines or not
+	flex-wrap: nowrap;						// nowrap | wrap | wrap-reverse;
+
+	// Shorthand for <flex-direction> || <flex-wrap>
+	// !recommended usage;
+	flex-flow: row-reverse wrap;			// <flex-direction> <flex-wrap>
+
+	// Define the alignment along the main axis
+	justify-content: flex-start; 			// flex-start | flex-end | center | space-between | space-around | space-evenly;
+
+	// Define the default behaviour for how flex items are laid out along the cross axis
+	align-items: flex-start; 				// flex-start | flex-end | center | baseline | stretch;
+
+	// This aligns a flex container's lines within when there is extra space in the cross-axis
+	align-content: flex-start;				// flex-start | flex-end | center | space-between | space-around | stretch;
+
+}
+
+
+
+
+
+//	CHILDREN PROPERTIES
+// ============================================================
+.FlexChild {
+
+	// FLEX CHILDREN
+	// Control the order in which children appear in the flex container
+	order: 0;								// <integer>; 0 !default;
+
+	// Define the ability for a flex item to grow if necessary.
+	flex-grow: 0;							// <number>; 0 !default;
+
+	// Define the ability for a flex item to shrink if necessary.
+	flex-shrink: 1;							// <number>; 1 !default;
+
+	// This defines the default size of an element before the remaining space is distributed.
+	// If set to 0, the extra space around content isn't factored in. If set to auto, the extra space is distributed based on its flex-grow value.
+	flex-basis: auto; 						// <length>; auto !default;
+
+	// Shorthand for => none || (<flex-grow> <flex-shrink> <flex-basis> )
+	flex: 0 1 auto;							// 0 1 auto !default;
+
+	// Overwrite the default alignment on this child
+	align-self: auto;						// auto | flex-start | flex-end | center | baseline | stretch;
+
+}
+
+
+
+

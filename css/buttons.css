@@ -1,0 +1,303 @@
+/* BUTTONS */
+button, input.btn {
+	font-family: var(--btnFont);
+	font-size: inherit;
+	font-weight: 400;
+	text-align: center;
+	white-space: nowrap;
+	vertical-align: middle;
+	user-select: none;
+	padding: var(--btnPadding);
+	border-radius: var(--btnRadius);
+	color: var(--btnDefaultBkg);
+	background: var(--btnDefaultColor);
+}
+button:disabled, button.disabled, input.btn:disabled, input.btn.disabled {
+	color: var(--btnDefaultDisabled);
+	background-color: var(--btnDefaultColor);
+}
+button:hover, button.hover, input.btn:hover, input.btn.hover {
+	cursor: pointer;
+	color: var(--btnDefaultColor);
+	background: var(--btnDefaultDisabled);
+}
+button:focus, button.focus, button:active, button.active, input.btn:focus, input.btn.focus, input.btn:active, input.btn.active {
+	outline: var(--btnFocus);
+}
+
+
+
+/* DEFAULT */
+button.default, input.btn.default {
+	color: var(--btnDefaultColor);
+	background: var(--btnDefaultBkg);
+	border: var(--btnDefaultBorder);
+}
+button.default:disabled, button.default.disabled, input.btn.default:disabled, input.btn.default.disabled {
+	color: var(--btnDefaultColor);
+	background-color: var(--btnDefaultDisabled);
+}
+button.default:hover, button.default.hover, input.btn.default:hover, input.btn.default.hover {
+	cursor: pointer;
+	color: var(--btnDefaultColor);
+	background: var(--btnDefaultHoverBkg);
+}
+button.default:focus, button.default.focus, button.default:active, button.default.active, input.btn.default:focus, input.btn.default.focus, input.btn.default:active, input.btn.default.active {
+	outline: var(--btnFocus);
+}
+
+
+
+/* PRIMARY */
+button.primary, input.btn.primary {
+	color: var(--btnPrimaryColor);
+	background: var(--btnPrimaryBkg);
+	border: var(--btnPrimaryBorder);
+}
+button.primary:disabled, button.primary.disabled, input.btn.primary:disabled, input.btn.primary.disabled {
+	color: var(--btnPrimaryColor);
+	background-color: var(--btnPrimaryDisabled);
+}
+button.primary:hover, button.primary.hover, input.btn.primary:hover, input.btn.primary.hover {
+	cursor: pointer;
+	color: var(--btnPrimaryColor);
+	background: var(--btnPrimaryHoverBkg);
+}
+button.primary:focus, button.primary.focus, button.primary:active, button.primary.active, input.btn.primary:focus, input.btn.primary.focus, input.btn.primary:active, input.btn.primary.active {
+	outline: var(--btnFocus);
+}
+
+
+
+/* SECONDARY */
+button.secondary, input.btn.secondary {
+	color: var(--btnSecondaryColor);
+	background: var(--btnSecondaryBkg);
+	border: var(--btnSecondaryBorder);
+}
+button.secondary:disabled, button.secondary.disabled, input.btn.secondary:disabled, input.btn.secondary.disabled {
+	color: var(--btnSecondaryColor);
+	background-color: var(--btnSecondaryDisabled);
+}
+button.secondary:hover, button.secondary.hover, input.btn.secondary:hover, input.btn.secondary.hover {
+	cursor: pointer;
+	color: var(--btnSecondaryColor);
+	background: var(--btnSecondaryHoverBkg);
+}
+button.secondary:focus, button.secondary.focus, button.secondary:active, button.secondary.active, input.btn.secondary:focus, input.btn.secondary.focus, input.btn.secondary:active, input.btn.secondary.active {
+	outline: var(--btnFocus);
+}
+
+
+
+/* TERTIARY */
+button.tertiary, input.btn.tertiary {
+	color: var(--btnTertiaryColor);
+	background: var(--btnTertiaryBkg);
+	border: var(--btnTertiaryBorder);
+}
+button.tertiary:disabled, button.tertiary.disabled, input.btn.tertiary:disabled, input.btn.tertiary.disabled {
+	color: var(--btnTertiaryColor);
+	background-color: var(--btnTertiaryDisabled);
+}
+button.tertiary:hover, button.tertiary.hover, input.btn.tertiary:hover, input.btn.tertiary.hover {
+	cursor: pointer;
+	color: var(--btnTertiaryColor);
+	background: var(--btnTertiaryHoverBkg);
+}
+button.tertiary:focus, button.tertiary.focus, button.tertiary:active, button.tertiary.active, input.btn.tertiary:focus, input.btn.tertiary.focus, input.btn.tertiary:active, input.btn.tertiary.active {
+	outline: var(--btnFocus);
+}
+
+
+
+/* SUCCESS */
+button.success, input.btn.success {
+	color: var(--btnSuccessColor);
+	background: var(--btnSuccessBkg);
+	border: var(--btnSuccessBorder);
+}
+button.success:disabled, button.success.disabled, input.btn.success:disabled, input.btn.success.disabled {
+	color: var(--btnSuccessColor);
+	background-color: var(--btnSuccessDisabled);
+}
+button.success:hover, button.success.hover, input.btn.success:hover, input.btn.success.hover {
+	cursor: pointer;
+	color: var(--btnSuccessColor);
+	background: var(--btnSuccessHoverBkg);
+}
+button.success:focus, button.success.focus, button.success:active, button.success.active, input.btn.success:focus, input.btn.success.focus, input.btn.success:active, input.btn.success.active {
+	outline: var(--btnFocus);
+}
+
+
+
+/* INFO */
+button.info, input.btn.info {
+	color: var(--btnInfoColor);
+	background: var(--btnInfoBkg);
+	border: var(--btnInfoBorder);
+}
+button.info:disabled, button.info.disabled, input.btn.info:disabled, input.btn.info.disabled {
+	color: var(--btnInfoColor);
+	background-color: var(--btnInfoDisabled);
+}
+button.info:hover, button.info.hover, input.btn.info:hover, input.btn.info.hover {
+	cursor: pointer;
+	color: var(--btnInfoColor);
+	background: var(--btnInfoHoverBkg);
+}
+button.info:focus, button.info.focus, button.info:active, button.info.active, input.btn.info:focus, input.btn.info.focus, input.btn.info:active, input.btn.info.active {
+	outline: var(--btnFocus);
+}
+
+
+
+/* WARNING */
+button.warning, input.btn.warning {
+	color: var(--btnWarningColor);
+	background: var(--btnWarningBkg);
+	border: var(--btnWarningBorder);
+}
+button.warning:disabled, button.warning.disabled, input.btn.warning:disabled, input.btn.warning.disabled {
+	color: var(--btnWarningColor);
+	background-color: var(--btnWarningDisabled);
+}
+button.warning:hover, button.warning.hover, input.btn.warning:hover, input.btn.warning.hover {
+	cursor: pointer;
+	color: var(--btnWarningColor);
+	background: var(--btnWarningHoverBkg);
+}
+button.warning:focus, button.warning.focus, button.warning:active, button.warning.active, input.btn.warning:focus, input.btn.warning.focus, input.btn.warning:active, input.btn.warning.active {
+	outline: var(--btnFocus);
+}
+
+
+
+/* ERROR */
+button.error, input.btn.error {
+	color: var(--btnErrorColor);
+	background: var(--btnErrorBkg);
+	border: var(--btnErrorBorder);
+}
+button.error:disabled, button.error.disabled, input.btn.error:disabled, input.btn.error.disabled {
+	color: var(--btnErrorColor);
+	background-color: var(--btnErrorDisabled);
+}
+button.error:hover, button.error.hover, input.btn.error:hover, input.btn.error.hover {
+	cursor: pointer;
+	color: var(--btnErrorColor);
+	background: var(--btnErrorHoverBkg);
+}
+button.error:focus, button.error.focus, button.error:active, button.error.active, input.btn.error:focus, input.btn.error.focus, input.btn.error:active, input.btn.error.active {
+	outline: var(--btnFocus);
+}
+
+
+
+/* BUTTON GROUP: HORIZONTAL */
+.btn-group {
+	-webkit-display: inline-flex;
+	display: inline-flex;
+	-webkit-flex-flow: row wrap;
+	flex-flow: row wrap;
+	-webkit-justify-content: flex-start;
+	justify-content: flex-start;
+	-webkit-align-items: stretch;
+	align-items: stretch;
+	-webkit-align-content: stretch;
+	align-content: stretch;
+	margin-bottom: var(--btnSpacer);
+	vertical-align: middle;
+}
+.btn-group > button, .btn-group > .btn {
+	position: relative;
+	flex: 0 1 auto;
+}
+.btn-group:hover, .btn-group.hover {
+	z-index: 1;
+}
+.btn-group:focus, .btn-group.focus, .btn-group:active, .btn-group.active {
+	z-index: 1;
+}
+.btn-group button + button,
+.btn-group button + .btn-group,
+.btn-group .btn-group + button,
+.btn-group .btn-group + .btn-group {
+	margin-left: -2px;
+	margin-right: -2px;
+}
+.btn-group > button:first-child, .btn-group > .btn:first-child {
+	margin-left: 0;
+}
+.btn-group > button:last-child, .btn-group > .btn:last-child {
+	margin-right: 0;
+}
+.btn-group > button:not(:last-child), .btn-group > .btn:not(:last-child), .btn-group > .btn-group:not(:last-child) > button, .btn-group > .btn-group:not(:last-child) > .btn {
+	border-top-right-radius: 0;
+	border-bottom-right-radius: 0;
+}
+.btn-group > button:not(:first-child), .btn-group > .btn:not(:first-child), .btn-group > .btn-group:not(:first-child) > button, .btn-group > .btn-group:not(:first-child) > .btn {
+	border-top-left-radius: 0;
+	border-bottom-left-radius: 0;
+}
+
+
+
+/* BUTTON GROUP: VERTICAL */
+.btn-group-vertical {
+	-webkit-display: flex;
+			display: flex;
+	-webkit-flex-flow: column wrap;
+			flex-flow: column wrap;
+	-webkit-justify-content: center;
+			justify-content: center;
+	-webkit-align-items: flex-start;
+			align-items: flex-start;
+	-webkit-align-content: stretch;
+			align-content: stretch;
+	margin-bottom: var(--btnSpacer);
+	vertical-align: middle;
+}
+.btn-group-vertical button + button,
+.btn-group-vertical button + .btn-group,
+.btn-group-vertical .btn-group + button,
+.btn-group-vertical .btn-group + .btn-group {
+	margin-top: -2px;
+	margin-left: 0;
+}
+.btn-group-vertical button, .btn-group-vertical .btn, .btn-group-vertical .btn-group {
+	width: 100%;
+}
+.btn-group-vertical > button:not(:last-child), .btn-group-vertical > .btn:not(:last-child), .btn-group-vertical > .btn-group:not(:last-child) > button, .btn-group-vertical > .btn-group:not(:last-child) > .btn {
+	border-bottom-right-radius: 0;
+	border-bottom-left-radius: 0;
+}
+.btn-group-vertical > button:not(:first-child), .btn-group-vertical > .btn:not(:first-child), .btn-group-vertical > .btn-group:not(:first-child) > button, .btn-group-vertical > .btn-group:not(:first-child) > .btn {
+	border-top-left-radius: 0;
+	border-top-right-radius: 0;
+}
+
+
+
+/* BUTTON BLOCK */
+.btn-block {
+	width: 100%;
+	-webkit-display: flex;
+			display: flex;
+	-webkit-flex-flow: row wrap;
+			flex-flow: row wrap;
+	-webkit-justify-content: center;
+			justify-content: center;
+	-webkit-align-items: stretch;
+			align-items: stretch;
+	-webkit-align-content: stretch;
+			align-content: stretch;
+}
+.btn-block > .btn, .btn-block > button, .btn-block > .btn-group {
+	flex: 1 0 auto;
+	align-self: stretch;
+}
+.btn-space-bottom {
+	margin-bottom: var(--btnSpacer);
+}

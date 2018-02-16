@@ -1,0 +1,68 @@
+
+Character Types:
+=========================
+c	CAPITOLS
+l	lowers
+n	numbers
+s	special characters
+
+
+
+Character Combinations:
+=========================
+cc	CAP-CAP
+cl	CAP-lower
+ll	lower-lower
+lc	lower-CAP
+
+cn	CAP-num
+nc	num-CAP
+ln	lower-num
+nl	num-lower
+
+cs	CAP-specialChar
+sc	specialChar-CAP
+ls	lower-specialChar
+sl	specialChar-lower
+
+nn	num-num
+
+ns	specialChar-num
+sn	specialChar-num
+
+ss	specialChar-specialChar
+
+
+
+stroke Types
+=========================
+l	line
+o	curve
+/	slant up
+\	slant down
+
+
+
+Stroke Combinations:
+=========================
+ll	line-line
+ol	curve-line
+lo	line-curve
+cc	curve-curve
+
+//	slantUp-slantUp
+\\	slantDown-slantDown
+/\	slantUp-slantDown
+\/	slantDown-slantUp
+
+/l	slantUp-line
+l/	line-slantUp
+\l	slantDown-line
+l\	line-slantDown
+
+o/	curve-slantUp
+/o	slantUp-curve
+o\	curve-slantDown
+\o	slantDown-curve
+
+
