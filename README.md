@@ -71,27 +71,29 @@ All the stroke data types are *weighted*, meaning the amount of space to kern de
 
 The weighted stroke types are defined below (and may need adjusting):
 ```
-Stroke Combinations:
-------------------------------
-ll	line-line
-ol	curve-line
-lo	line-curve
-cc	curve-curve
-
-//	slantUp-slantUp
-\\	slantDown-slantDown
-/\	slantUp-slantDown
-\/	slantDown-slantUp
-
-/l	slantUp-line
-l/	line-slantUp
-\l	slantDown-line
-l\	line-slantDown
-
-o/	curve-slantUp
-/o	slantUp-curve
-o\	curve-slantDown
-\o	slantDown-curve
+------+-----------------------
+Code  | Stroke Combinations:
+------+-----------------------
+ ll   |  line-line
+ ol   |  curve-line
+ lo   |  line-curve
+ cc   |  curve-curve
+      |
+ //   |  slantUp-slantUp
+ \\   |  slantDown-slantDown
+ /\   |  slantUp-slantDown
+ \/   |  slantDown-slantUp
+      |
+ /l   |  slantUp-line
+ l/   |  line-slantUp
+ \l   |  slantDown-line
+ l\   |  line-slantDown
+      |
+ o/   |  curve-slantUp
+ /o   |  slantUp-curve
+ o\   |  curve-slantDown
+ \o   |  slantDown-curve
+------+-----------------------
 
 
 // in KernBot stroke combo weights is codified like so
