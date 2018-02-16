@@ -4,6 +4,12 @@
 
 KernBot uses traditional calligraphy methods to categorize letters by the types of letter strokes they are comprised of. It then calculates the relative value letter-spacing by comparing the character's stroke types to the adjacent letters.
 
+## To Do:
+
+* analyze the kerning of different fonts
+* test on different font sizes
+* build a more user friendly front-end to play with KernBot and analyze kerning data
+
 ## How It Works:
 
 There are two components to KernBot: a **Kerning Library** that contains the data legend of the characters and their associated stroke types, and the actual **Kerning Bot** that automates the kerning calculations and action output.
@@ -16,6 +22,7 @@ const KerningBot = new KernBot(KerningLib);
 The character stroke legend contains a list of character objects that the KernBot is looking to kern. Each character object also contains the stroke type before (to the left of the character) and after (to the right of the character).
 
 ```
+// KernBot
 const characterStrokeLegend = [
 	{ "char": "a", "before": "o", "after": "l" },
 	{ "char": "b", "before": "l", "after": "o" },
@@ -110,7 +117,7 @@ const characterStrokeLegend = [
 
 The "stroke type" is an opinionated list of predefined values. The stroke types are derived from traditional calligraphy methods. In calligrphy, a letter is written a certain way; usually by the type of stroke, its direction, and the order of each stroke.
 
-The available stroke types are defined below:
+The available stroke types are defined by their **data code**:
 ```
 -------------+------------------+------------
 Stroke Type  | Name             | Data Code
@@ -126,7 +133,37 @@ Stroke Type  | Name             | Data Code
 
 ### Stroke Type Combinations
 
+All the stroke data types are *weighted*, meaning the amount of space to kern depends on the combination of stroke types between two characters.
+
+The weighted stroke types are defined below (and may need adjusting):
+
 ```
+
+Stroke Combinations:
+------------------------------
+ll	line-line
+ol	curve-line
+lo	line-curve
+cc	curve-curve
+
+//	slantUp-slantUp
+\\	slantDown-slantDown
+/\	slantUp-slantDown
+\/	slantDown-slantUp
+
+/l	slantUp-line
+l/	line-slantUp
+\l	slantDown-line
+l\	line-slantDown
+
+o/	curve-slantUp
+/o	slantUp-curve
+o\	curve-slantDown
+\o	slantDown-curve
+
+
+// KernBot
+// kerning weight is 10 based
 const strokeDataReference = [
 	{code: "ll", s1: "l", s2: "l", weight: 4},
 	{code: "lo", s1: "l", s2: "o", weight: 3},
@@ -166,3 +203,5 @@ const strokeDataReference = [
 	{code: "nn", s1: "n", s2: "n", weight: 0}
 ];
 ```
+
+
