@@ -6,9 +6,7 @@ KernBot uses traditional calligraphy methods to categorize letters by the types 
 
 ## How It Works:
 
-There are two components to KernBot:
-* a Kerning Library that contains the data legend of the characters and their associated stroke types
-* and the actual Kerning Bot that automates the kerning calculations and action output.
+There are two components to KernBot: a *Kerning Library* that contains the data legend of the characters and their associated stroke types, and the actual *Kerning Bot* that automates the kerning calculations and action output.
 
 ```
 const KerningLib = new KernLib(characterStrokeLegend, strokeDataReference);
