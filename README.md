@@ -5,7 +5,7 @@
 KernBot uses traditional calligraphy methods to categorize letters by the types of letter strokes they are comprised of. It then calculates the relative value letter-spacing by comparing the character's stroke types to the adjacent letters.
 
 ## To Do:
-
+* remove KernBot from GLOBAL context
 * analyze the kerning of different fonts
 * test on different font sizes
 * build a more user friendly front-end to play with KernBot and analyze kerning data

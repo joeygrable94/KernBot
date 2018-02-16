@@ -396,25 +396,6 @@ const KerningBot = new KernBot(KerningLib);
 //console.log(KerningLib.strokeLegend);
 
 
-// In the Browser
-(function(window, document, undefined) {
-
-	// code that should be taken care of right away
-	window.onload = init;
-
-	// initialize kerning
-	function init(){
-
-		KerningBot.kernClass("kernH1");
-		KerningBot.kernClass("kernH2");
-		KerningBot.kernClass("kernPara");
-
-	}
-
-})(window, document, undefined);
-
-
-
 
 
 
