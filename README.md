@@ -110,6 +110,21 @@ const characterStrokeLegend = [
 
 The "stroke type" is an opinionated list of predefined values. The stroke types are derived from traditional calligraphy methods. In calligrphy, a letter is written a certain way; usually by the type of stroke, its direction, and the order of each stroke.
 
+The available stroke types are defined below:
+```
+-------------+------------------+------------
+Stroke Type  | Name             | Data Code
+-------------+------------------+------------
+ l           |  line            |  l
+ o           |  curve           |  o
+ /           |  slant up        |  u
+ \           |  slant down      |  d
+ *           |  spacial case    |  s
+-------------+------------------+------------
+```
+
+
+### Stroke Type Combinations
 
 ```
 const strokeDataReference = [
