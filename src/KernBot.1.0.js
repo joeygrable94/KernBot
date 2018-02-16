@@ -118,7 +118,6 @@ KernLib.prototype.sortBy = function(field, reverse, primer) {
 
 //	Character Kerning Legend
 // ==================================================
-//const characterInputs = ['a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z', 'A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z', '0','1','2','3','4','5','6','7','8','9',' ','.',',',';','“','”','‘','’','!','@','#','$','%','^','&','*','(',')','[',']','{','}','/'];
 const characterStrokeLegend = [
 	{ "char": "a", "before": "o", "after": "l" },
 	{ "char": "b", "before": "l", "after": "o" },
@@ -267,28 +266,22 @@ function KernBot(lib) {
 	this.strokeLegend = this.kernLib.strokeLegend;
 	this.characterLegend = this.kernLib.characterLegend;
 }
-
 // KernBot.kern
-KernBot.prototype.kernClass = function(selector) {
-	
+KernBot.prototype.kernClass = function(selector) {	
 	// get elements to kern
 	let root = window,
 		elements = document.getElementsByClassName(selector);
-
 	// loop through every element
 	for (let i = 0; i < elements.length; i++) {
-
 		// element variables for kerning
 		let kernObjs = [],
 			elm = elements[i],
 			string = elm.innerHTML,
 			fontSize = parseFloat(getComputedStyle(elm).fontSize);
-
 		// iterator variables
 		let start = 1,
 			count = start,
 			end = string.length;
-
 		// loop through the string length and build kerning objs
 		while (count <= end) {
 			// get loop array index
@@ -308,7 +301,6 @@ KernBot.prototype.kernClass = function(selector) {
 			// increase the count
 			count++;
 		}
-
 		// reset the count
 		count = start;
 		// loop through the kerning objs to calculate their kerning based on their adjacent character stroke data
@@ -332,7 +324,6 @@ KernBot.prototype.kernClass = function(selector) {
 			// increase the count
 			count++;
 		}
-
 		// reset the count
 		count = start;
 		// loop through the kerning objs to calculate their letterspacing relative to the font size
@@ -346,17 +337,13 @@ KernBot.prototype.kernClass = function(selector) {
 			// increase the count
 			count++;
 		}
-
 		// prepare HTML string by passing it the string converted to an obj with kerning data
 		let HTMLString = this.prepareHTMLString(kernObjs);
-		
 		// set innerHTML of this element to the new string with span letter spacing wraps
 		elements[i].innerHTML = HTMLString;
-
 	}
-
-	// return false
-	return false;
+	// return
+	return true;
 }
 // get data from legend
 KernBot.prototype.getDataFromLegend = function(key, legend, property) {
@@ -371,9 +358,6 @@ KernBot.prototype.getDataFromLegend = function(key, legend, property) {
 }
 // prepare HTML string
 KernBot.prototype.prepareHTMLString = function(data) {
-
-	console.log(data);
-
 	// vars
 	let HTMLString = "";
 	// loop through the length (plus 1 for the last character)
@@ -389,7 +373,6 @@ KernBot.prototype.prepareHTMLString = function(data) {
 	HTMLString += "</span>";
 	// return string
 	return HTMLString;
-
 }
 
 
