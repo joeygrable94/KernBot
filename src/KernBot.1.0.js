@@ -253,7 +253,7 @@ const strokeTypes = [
 ];
 // build stroke combination data
 const strokeDataReference = new StrokeData(strokeTypes);
-///console.log(strokeDataReference);
+//console.log(strokeDataReference);
 
 
 

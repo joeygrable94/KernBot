@@ -24,91 +24,25 @@ The character stroke legend contains a list of character objects that the KernBo
 ```
 // KernBot
 const characterStrokeLegend = [
+	// ...lowercase
 	{ "char": "a", "before": "o", "after": "l" },
 	{ "char": "b", "before": "l", "after": "o" },
 	{ "char": "c", "before": "o", "after": "l" },
-	{ "char": "d", "before": "o", "after": "l" },
-	{ "char": "e", "before": "o", "after": "o" },
-	{ "char": "f", "before": "l", "after": "l" },
-	{ "char": "g", "before": "o", "after": "o" },
-	{ "char": "h", "before": "l", "after": "l" },
-	{ "char": "i", "before": "l", "after": "l" },
-	{ "char": "j", "before": "l", "after": "l" },
-	{ "char": "k", "before": "l", "after": "l" },
-	{ "char": "l", "before": "l", "after": "l" },
-	{ "char": "m", "before": "l", "after": "l" },
-	{ "char": "n", "before": "l", "after": "l" },
-	{ "char": "o", "before": "o", "after": "o" },
-	{ "char": "p", "before": "l", "after": "o" },
-	{ "char": "q", "before": "o", "after": "l" },
-	{ "char": "r", "before": "l", "after": "l" },
-	{ "char": "s", "before": "l", "after": "l" },
-	{ "char": "t", "before": "l", "after": "s" },
-	{ "char": "u", "before": "s", "after": "l" },
-	{ "char": "v", "before": "d", "after": "u" },
-	{ "char": "w", "before": "d", "after": "u" },
-	{ "char": "x", "before": "l", "after": "l" },
-	{ "char": "y", "before": "s", "after": "u" },
-	{ "char": "z", "before": "l", "after": "l" },
+	// ...capitols
 	{ "char": "A", "before": "u", "after": "d" },
 	{ "char": "B", "before": "l", "after": "o" },
 	{ "char": "C", "before": "o", "after": "l" },
-	{ "char": "D", "before": "l", "after": "o" },
-	{ "char": "E", "before": "l", "after": "l" },
-	{ "char": "F", "before": "l", "after": "u" },
-	{ "char": "G", "before": "o", "after": "s" },
-	{ "char": "H", "before": "l", "after": "l" },
-	{ "char": "I", "before": "l", "after": "l" },
-	{ "char": "J", "before": "s", "after": "l" },
-	{ "char": "K", "before": "l", "after": "s" },
-	{ "char": "L", "before": "l", "after": "s" },
-	{ "char": "M", "before": "l", "after": "l" },
-	{ "char": "N", "before": "l", "after": "l" },
-	{ "char": "O", "before": "o", "after": "o" },
-	{ "char": "P", "before": "l", "after": "s" },
-	{ "char": "Q", "before": "o", "after": "o" },
-	{ "char": "R", "before": "l", "after": "s" },
-	{ "char": "S", "before": "l", "after": "l" },
-	{ "char": "T", "before": "d", "after": "u" },
-	{ "char": "U", "before": "l", "after": "l" },
-	{ "char": "V", "before": "d", "after": "u" },
-	{ "char": "W", "before": "d", "after": "u" },
-	{ "char": "X", "before": "l", "after": "l" },
-	{ "char": "Y", "before": "d", "after": "u" },
-	{ "char": "Z", "before": "l", "after": "l" },
+	// ...numbers
 	{ "char": "0", "before": "o", "after": "o" },
 	{ "char": "1", "before": "l", "after": "l" },
 	{ "char": "2", "before": "l", "after": "o" },
 	{ "char": "3", "before": "l", "after": "o" },
-	{ "char": "4", "before": "u", "after": "l" },
-	{ "char": "5", "before": "l", "after": "s" },
-	{ "char": "6", "before": "o", "after": "o" },
-	{ "char": "7", "before": "l", "after": "u" },
-	{ "char": "8", "before": "o", "after": "o" },
-	{ "char": "9", "before": "l", "after": "o" },
-	{ "char": " ", "before": "n", "after": "n" },
+	// ...special chars
 	{ "char": ".", "before": "s", "after": "n" },
 	{ "char": ",", "before": "s", "after": "n" },
 	{ "char": ";", "before": "s", "after": "n" },
-	{ "char": "“", "before": "n", "after": "s" },
-	{ "char": "”", "before": "s", "after": "n" },
-	{ "char": "‘", "before": "n", "after": "s" },
-	{ "char": "’", "before": "s", "after": "n" },
-	{ "char": "!", "before": "s", "after": "n" },
-	{ "char": "@", "before": "o", "after": "o" },
-	{ "char": "#", "before": "u", "after": "u" },
-	{ "char": "$", "before": "l", "after": "l" },
-	{ "char": "%", "before": "s", "after": "s" },
-	{ "char": "^", "before": "s", "after": "s" },
-	{ "char": "&", "before": "o", "after": "s" },
-	{ "char": "*", "before": "s", "after": "s" },
 	{ "char": "(", "before": "n", "after": "s" },
-	{ "char": ")", "before": "s", "after": "n" },
-	{ "char": "[", "before": "n", "after": "s" },
-	{ "char": "]", "before": "s", "after": "n" },
-	{ "char": "{", "before": "n", "after": "s" },
-	{ "char": "}", "before": "s", "after": "n" },
-	{ "char": "/", "before": "s", "after": "s" }
+	{ "char": ")", "before": "s", "after": "n" }
 ];
 ```
 
@@ -136,9 +70,7 @@ Stroke Type  | Name             | Data Code
 All the stroke data types are *weighted*, meaning the amount of space to kern depends on the combination of stroke types between two characters.
 
 The weighted stroke types are defined below (and may need adjusting):
-
 ```
-
 Stroke Combinations:
 ------------------------------
 ll	line-line
@@ -162,8 +94,7 @@ o\	curve-slantDown
 \o	slantDown-curve
 
 
-// KernBot
-// kerning weight is 10 based
+// in KernBot stroke combo weights is codified like so
 const strokeDataReference = [
 	{code: "ll", s1: "l", s2: "l", weight: 4},
 	{code: "lo", s1: "l", s2: "o", weight: 3},
