@@ -244,10 +244,10 @@ function StrokeData(strokes) {
 }
 // initialize all the strokes (options)
 const strokeTypes = [
-	new Stroke("l", 2),	// vertical stroke
-	new Stroke("o", 1),	// round stroke
-	new Stroke("u", 4),	// up slant stroke
-	new Stroke("d", 4),	// down slant stroke
+	new Stroke("l", 1),	// vertical stroke
+	new Stroke("o", 2),	// round stroke
+	new Stroke("u", 3),	// up slant stroke
+	new Stroke("d", 3),	// down slant stroke
 	new Stroke("s", 2),	// special case
 	new Stroke("n", 0)	// none case
 ];
