@@ -1,2 +1,17 @@
 /* custom styles */
+#KernBotNodePairs {
+	widows: 100%;
+	max-width: 960px;
+	margin: 0 auto;
+	padding: var(--baseFontEm) 0em;
+}
 
+#KernBotNodePairs ul {
+	list-style-type: none;
+	display: grid;
+	grid-template-columns: repeat(4, minmax(200px, 1fr));
+}
+
+#KernBotNodePairs ul li {
+	padding: var(--baseFontEm);
+}

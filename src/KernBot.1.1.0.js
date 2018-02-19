@@ -284,6 +284,9 @@ letter-spacing by comparing the character's stroke types to the adjacent letters
 		self.gatherElements(options.classes);
 		self.gatherElements(options.ids);
 		self.gatherElements(options.tags);
+
+		console.log(self);
+
 		// loop through each HTML element
 		for (let e = 0; e < self.HTMLelements.length; e++) {
 			// write the HTML to the element
@@ -295,51 +298,58 @@ letter-spacing by comparing the character's stroke types to the adjacent letters
 		return self;
 	}
 	// gather all the HTML elements to run KernBot on
-	KernBot.prototype.gatherElements = function(element) {
+	KernBot.prototype.gatherElements = function(selector) {
 		// check the type
-		let input = typeof element;
-		// if a sinlge element
+		let self = this,
+			input = typeof selector,
+			output = [],
+			elements = null;
+		// if a single selector
 		if (input === "string") {
-			// add element
-			this.getElementHTML(element);
+			// add HTML elements
+			elements = self.getElementHTML(selector);
 		}
-		// if an array of elements
-		if (Array.isArray(element)) {
-			// loop through list
-			for (let x = 0; x < element.length; x++) {
-				// add elements
-				this.getElementHTML(element[x]);
+		// if an array of selectors
+		if (Array.isArray(selector)) {
+			// loop through list of selectors
+			for (let x = 0; x < selector.length; x++) {
+				// add HTML elements
+				elements = self.getElementHTML(selector[x]);
 			}
 		}
-		return this.HTMLelements;
+		// loop through the elements and add to KernBot.HTMLelements
+		for (let i = 0; i < elements.length; i++) {
+			self.HTMLelements.push(elements[i]);
+		}
 	}
-	// add an HTML element to the KernBot.HTMLelements
-	KernBot.prototype.getElementHTML = function(element) {
+	// output an array of HTML elements with input selector
+	KernBot.prototype.getElementHTML = function(selector) {
 		// vars
-		let selector = element.substring(0,1);
+		let firstChar = selector.substring(0,1),
+			output = [];
 		// switch
-		switch (selector) {
+		switch (firstChar) {
 			// IDs
 			case "#":
-				let byID = document.getElementById(element.substring(1));
-				this.HTMLelements.push( byID );
+				let byID = document.getElementById(selector.substring(1));
+				output.push(byID);
 				break;
 			// Classes
 			case ".":
-				let byClass = document.getElementsByClassName(element.substring(1));
+				let byClass = document.getElementsByClassName(selector.substring(1));
 				for (let x = 0; x < byClass.length; x++) {
-					this.HTMLelements.push(byClass[x]);
+					output.push(byClass[x]);
 				}
 				break;
 			// HTML tag
 			default:
-				let byTag = document.getElementsByTagName(element.toUpperCase());
+				let byTag = document.getElementsByTagName(selector.toUpperCase());
 				for (let y = 0; y < byTag.length; y++) {
-					this.HTMLelements.push(byTag[y]);
+					output.push(byTag[y]);
 				}
 				break;
 		}
-		return true;
+		return output;
 	}
 	// write the HTML to the DOM element
 	KernBot.prototype.writeElementToHTML = function(element) {
@@ -401,6 +411,30 @@ letter-spacing by comparing the character's stroke types to the adjacent letters
 		}
 		// return string
 		return HTMLString;
+	}
+	// output nodes to page
+	KernBot.prototype.writeNodePairsToHTML = function(selector) {
+		// vars
+		let self = this,
+			trainerHTML = self.getElementHTML(selector),
+			trainerOutput = trainerHTML[0],
+			HTMLstring = "<ul>";
+		// loop through counted NodePairs
+		for (let i = 0; i < self.counted.length; i++) {
+			HTMLstring += "<li>";
+				HTMLstring += "<h3>";
+					HTMLstring += "“" + self.counted[i].pair + "”";
+				HTMLstring += "</h3>";
+				HTMLstring += "<p>";
+					HTMLstring += "Count: " + self.counted[i].count;
+				HTMLstring += "<br>";
+					HTMLstring += "Kern Weight: " + self.counted[i].kern.weight;
+				HTMLstring += "</p>";
+			HTMLstring += "</li>";
+		}
+		HTMLstring += "</ul>";
+		return trainerOutput.innerHTML = HTMLstring;
+
 	}
 	// Initialize the KernBot object methods
 	KernBot.init.prototype = KernBot.prototype;

@@ -5,18 +5,16 @@
 KernBot uses traditional calligraphy methods to categorize letters by the types of letter strokes they are comprised of. It then calculates the relative value letter-spacing by comparing the character's stroke types to the adjacent letters.
 
 ## To Do:
-* remove KernBot from GLOBAL context
 * analyze the kerning of different fonts
 * test on different font sizes
 * build a more user friendly front-end to play with KernBot and analyze kerning data
+* introduce a Perceptron to train the KernBot to adjust the stroke weights depending on the font
 
 ## How It Works:
 
-There are two components to KernBot: a **Kerning Library** that contains the data legend of the characters and their associated stroke types, and the actual **Kerning Bot** that automates the kerning calculations and action output.
+
 
 ```
-const KerningLib = new KernLib(characterStrokeLegend, strokeDataReference);
-const KerningBot = new KernBot(KerningLib);
 ```
 
 The character stroke legend contains a list of character objects that the KernBot is looking to kern. Each character object also contains the stroke type before (to the left of the character) and after (to the right of the character).
