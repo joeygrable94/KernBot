@@ -39,14 +39,18 @@
 <script type="text/javascript">
 
 let TestKernBot = new KernBot();
+/*
 TestKernBot.kern({
 	classes: [".kern-bot"],
 	ids: ["#kern-H3", "#kern-Lorem"],
 	tags: ["H4"]
 });
+*/
 
 // write Nodes to HTML
 TestKernBot.writeNodePairsToHTML("#KernBotNodePairs");
+
+TestKernBot.kernElement( $('#kern-H3') );
 
 </script>
 	<!--<script type="text/javascript" src="./src/KernBot.1.0.0.js"></script>-->
