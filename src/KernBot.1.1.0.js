@@ -123,6 +123,10 @@ letter-spacing by comparing the character's stroke types to the adjacent letters
 		{ "char": "}", "before": "s", "after": "n" },
 		{ "char": "/", "before": "s", "after": "s" }
 	];
+
+	console.log(strokeLegend);
+	console.log(characterLegend);
+
 	// Nodes 
 	function Node(character, strokeBefore, strokeAfter) {
 		this.char = character;
@@ -202,6 +206,7 @@ letter-spacing by comparing the character's stroke types to the adjacent letters
 		self.counted = [];
 		self.mostCommon = [];
 		self.leastCommon = [];
+
 		// initialize KernBot
 		if (self.build()) {
 			console.log(self.nodes);
@@ -332,7 +337,7 @@ letter-spacing by comparing the character's stroke types to the adjacent letters
 			// count all nodes that occur
 			if (self.nodes[i].count > 0) {
 				// add this node to the counted array
-				this.counted.push(data[i]);
+				this.counted.push(self.nodes[i]);
 			}
 		}
 		// sort all the counted nodes
@@ -469,7 +474,7 @@ letter-spacing by comparing the character's stroke types to the adjacent letters
 	 * @param [array] data - kerned Nodes' sequence
 	 * @return "string" innerHTML - an HTML string
 	 */
-	KernBot.prototype.__prepareHTMLString = function(data) {
+	KernBot.prototype._prepareHTMLString = function(data) {
 		// vars
 		let HTMLString = "";
 		// loop through the data
@@ -488,20 +493,19 @@ letter-spacing by comparing the character's stroke types to the adjacent letters
 	// output nodes to page
 	KernBot.prototype.writeNodePairsToHTML = function(selector) {
 		// vars
-		let self = this,
-			trainerHTML = self._getSelectorHTML(selector),
+		let trainerHTML = this._getSelectorHTML(selector),
 			trainerOutput = trainerHTML[0],
 			HTMLstring = "<ul>";
-		// loop through counted NodePairs
-		for (let i = 0; i < self.counted.length; i++) {
+		// loop through Nodes
+		for (let i = 0; i < this.counted.length; i++) {
 			HTMLstring += "<li>";
 				HTMLstring += "<h3>";
-					HTMLstring += "“" + self.counted[i].pair + "”";
+					HTMLstring += "“" + this.counted[i].pair + "”";
 				HTMLstring += "</h3>";
 				HTMLstring += "<p>";
-					HTMLstring += "Count: " + self.counted[i].count;
+					HTMLstring += "Count: " + this.counted[i].count;
 				HTMLstring += "<br>";
-					HTMLstring += "Kern Weight: " + self.counted[i].kern.weight;
+					HTMLstring += "Kern Weight: " + this.counted[i].kerning;
 				HTMLstring += "</p>";
 			HTMLstring += "</li>";
 		}
