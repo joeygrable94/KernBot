@@ -29,14 +29,15 @@
 	--msUp10:	calc( var(--msUp9)		*	var(--ratioMS) );
 
 	/*
-	baselineMltp * baselineUnit /
+	baselineMltp * baselineUnit
+				/
 	baseFontEm * baseFontSize
-	30px / 15px = 2
 	*/
 	--htmlFontSize: calc( var(--baseFontSize) / 16 );
 	--baselineRatio: calc( var(--baselineMltp) * var(--baselineUnit) );
 	--baseFontRatio: calc( var(--baseFontEm) * var(--baseFontSize) );
 	--baseLineHeight: calc( var(--baselineRatio) / var(--baseFontRatio) );
+	--textParagraphIndent: 0em;
 
 	/* COLORS */
 	--black: #000000;

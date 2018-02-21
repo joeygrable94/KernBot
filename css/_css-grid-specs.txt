@@ -33,16 +33,16 @@
 	grid:;										// none | <grid-template-rows> / <grid-template-columns> | <grid-auto-flow> [<grid-auto-rows> [/ <grid-auto-columns>]];
 
 	// SPACING & ALIGNMENT
-	// Aligns the CONTENT inside a grid item along the row AXIS.
+	// Aligns the CONTENT inside a grid item along the ROW.
 	justify-items: start;						// start | end | center | stretch;
 
 	// Aligns the CONTENT inside a grid item along the COLUMN.
 	align-items: start;							// start | end | center | stretch;
 
-	// This property aligns the GRID along the ROW axis.
+	// This property aligns the GRID along the ROW.
 	justify-content: start;						// start | end | center | stretch | space-around | space-between | space-evenly;
 
-	// This property aligns the GRID along the COLUMN axis
+	// This property aligns the GRID along the COLUMN
 	align-content: start;						// start | end | center | stretch | space-around | space-between | space-evenly;
 
 }

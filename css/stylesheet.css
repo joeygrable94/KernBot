@@ -13,8 +13,10 @@ body {
 	list-style-type: none;
 	display: grid;
 	grid-template-columns: repeat(4, minmax(200px, 1fr));
+	align-items: end;
 }
 
 #KernBotNodePairs ul li {
 	padding: var(--baseFontEm);
+	margin-bottom: var(--msUp4);
 }

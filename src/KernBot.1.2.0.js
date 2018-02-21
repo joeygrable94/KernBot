@@ -22,6 +22,14 @@ letter-spacing by comparing the character's stroke types to the adjacent letters
 
 	//	CLASSES
 	// ===========================================================================
+	/*class Tracker {
+		constructor() {
+			this.count = 0;
+			this.indexes = [];
+		}
+		_increaseCount(val = 1) { return this.count += val; }
+		_addCharIndex(index) { return this.indexes.push( index ); }
+		_addCharPairIndex(index) { return this.indexes.push([index, index+1]); }}*/
 	// characters
 	class Character {
 		constructor(char, before, after) {
@@ -89,21 +97,21 @@ letter-spacing by comparing the character's stroke types to the adjacent letters
 	class Node {
 		constructor(context, character, index) {
 			this.context = context;
-			this.charIndexes = [index];
+			this.indexes = [index];
 			this.key = character.char;
 			this.character = character;
 			this.kerning = character.kerning;
 			this.count = 0;
 			this._increaseCount(1);
 		}
-		_increaseCount(val) { return this.count += val; }
-		_addCharIndex(index) { return this.charIndexes.push(index); }
+		_increaseCount(val = 1) { return this.count += val; }
+		_addCharIndex(index) { return this.indexes.push( index ); }
 	};
 	// node pairs
 	class NodePair {
-		constructor(context, charPair, index) {
+		constructor(context, charPair, index, kerning) {
 			this.context = context;
-			this.charIndexes = [ [index, index+1] ];
+			this.indexes = [ [index, index+1] ];
 			this.pair = charPair.pair;
 			this.c1 = {
 				char: charPair.c1.char,
@@ -119,11 +127,15 @@ letter-spacing by comparing the character's stroke types to the adjacent letters
 					after: charPair.c2.strokes.after
 				}
 			};
+			this.kerning = kerning.kern;
+			this.weight = kerning.weight;
+			this.letterSpace = kerning.letterSpace;
 			this.count = 0;
 			this._increaseCount(1);
 		}
 		_increaseCount(val) { return this.count += val; }
-		_addCharIndexes(index) { return this.charIndexes.push([index, index+1]); }
+		_addCharPairIndex(index) { return this.indexes.push([index, index+1]); }
+		//_addLetterSpace(value) { return this.letterSpace = value; }
 	}
 
 	//	CONSTANTS
@@ -221,7 +233,8 @@ letter-spacing by comparing the character's stroke types to the adjacent letters
 		{ "char": "]", "before": "s", "after": "n" },
 		{ "char": "{", "before": "n", "after": "s" },
 		{ "char": "}", "before": "s", "after": "n" },
-		{ "char": "/", "before": "s", "after": "s" },];
+		{ "char": "/", "before": "s", "after": "s" }
+	];
 
 	//	KernBot
 	// ===========================================================================
@@ -258,8 +271,6 @@ letter-spacing by comparing the character's stroke types to the adjacent letters
 		self.sequences = [];
 		self.nodes = [];
 		self.nodePairs = [];
-		self.mostCommon = [];
-		self.leastCommon = [];
 
 		// DEBUGING
 		console.log(self);
@@ -276,48 +287,39 @@ letter-spacing by comparing the character's stroke types to the adjacent letters
 	 * @return 'this' self - makes method chainable
 	 */
 	KernBot.prototype.kern = function(options) {
-		
 		// store self
 		let self = this;
+		// compile options
 		self.options.classes = options.classes || null,
 		self.options.ids = options.ids || null,
 		self.options.tags = options.tags || null;
-
+		self.options.track = options.track || false;
 		// gather the selectors to get the HTML elements
 		self._gatherSelectors(self.options.classes)
 			._gatherSelectors(self.options.ids)
 			._gatherSelectors(self.options.tags);
-
 		// gather the HTML elements to use KernBot on
 		self._gatherElements(self.selectors);
-
 		// loop through each HTML element
 		for (let e = 0; e < self.HTMLelements.length; e++) {
-			
 			// prepare element and HTML string
 			let element = self.HTMLelements[e],
 				string = self.HTMLelements[e].innerHTML,
 				sequence = self._gatherSequence(string),
 				HTMLstring = "";
-
 			// calculate the kerning for the sequence
 			sequence = self._calcSequenceKerning(element, sequence);
-
 			// prepare HTML string to write to DOM
 			HTMLstring = self._prepareHTMLString(sequence);
-
 			// update the elements HTML with the span injected kerning data
 			self._updateElementHTML(element, HTMLstring);
-			
 			// add this sequence to the array of sequence KernBot is listening too
-			self.sequences.push(sequence);
-
-			// add new tracking Nodes, then update
-			self._trackNodes(element, sequence)
-				._updateNodeAnalytics();
-
+			self.sequences.push({ "context": element, "sequence": sequence });
 		}
-		
+		// update KernBot tracking
+		if (self.options.track) {
+			self._update();
+		}
 		// return KernBot
 		return self;
 	}
@@ -538,31 +540,29 @@ letter-spacing by comparing the character's stroke types to the adjacent letters
 		for (let i = 0; i < sequence.length; i++) {
 			// vars
 			let currentChar = this._getLegendData(sequence[i].char, "char", this.characters),
+				classIndex = i+1,
 				next = sequence[i+1],
-				nextChar = false,
+				nextChar = null,
 				charPair = null,
 				kerning = 0,
 				letterSpace = "";
-			// check sequence loop not last letter, no next char, break out of loop
-			if (!next) { break; }
-			// get next char in sequence
-			nextChar = this._getLegendData(sequence[i+1].char, "char", this.characters);
-			// get char pair data
-			charPair = this._getLegendData(
-				currentChar.char + nextChar.char,
-				"pair",
-				this.characterPairs
-			);
-			// calculate kerning & letter-spacing
-			kerning = ( Math.round((charPair.weight*100)/100).toFixed(2) / -100 ) * fontSize;
-			letterSpace = kerning.toString().substring(0, 5);
-			// set the kerning of the sequence Node
-			sequence[i]._addKerning(kerning);
-			sequence[i]._addLetterSpace(letterSpace);
-			
-			// create a NodePair to track
-			this._trackNodePairs(context, charPair, i);
-
+			// check sequence loop, has a next character to calculate kerning with
+			if (next) {
+				// get next char in sequence
+				nextChar = this._getLegendData(next.char, "char", this.characters);
+				// get char pair data
+				charPair = this._getLegendData(
+					currentChar.char + nextChar.char,
+					"pair",
+					this.characterPairs
+				);
+				// calculate kerning & letter-spacing
+				kerning = ( Math.round((charPair.weight*100)/100).toFixed(2) / -100 ) * fontSize;
+				letterSpace = kerning.toString().substring(0, 5);
+				// set the kerning of the sequence Node
+				sequence[i]._addKerning(kerning);
+				sequence[i]._addLetterSpace(letterSpace);
+			}
 			// add sequence item to output
 			output.push(sequence[i]);
 		}
@@ -603,66 +603,101 @@ letter-spacing by comparing the character's stroke types to the adjacent letters
 	//	NODE TRACKING
 	// ===========================================================================
 	/**
-	 * Keeps track of which node have been kerned
-	 * @param {object} context – the HTML element which KernBot is acting on
-	 * @param [array] sequence - an array of character objects
+	 * Updates the Node data for each 'this.sequence' in KernBot
 	 * @return 'this' this - makes method chainable
 	 */
-	KernBot.prototype._trackNodes = function(context, sequence) {
-		// loop through sequence
-		for (let i = 0; i < sequence.length; i++) {
+	KernBot.prototype._update = function() {
+		// loop through each sequence
+		for (let x = 0; x < this.sequences.length; x++) {
 			// vars
-			let character = sequence[i],
-				checkNode = this._getLegendData(sequence[i].char, "key", this.nodes) || false;
-			// check node exists in this context
-			if (checkNode) {
-				// increase count of the this Node
-				checkNode._increaseCount(1);
-				// add the string index of this new instance of the Node
-				checkNode._addCharIndex(i+1);
-			} else {
-				// create a new node to track in context
-				this.nodes.push(new Node(context, character, i+1));
+			let context = this.sequences[x].context,
+				sequence = this.sequences[x].sequence;
+			// loop through the sequence
+			for (let i = 0; i < sequence.length; i++) {
+				// vars
+				let current = sequence[i],
+					next = sequence[i+1],
+					index = i+1,
+					currentChar = this._getLegendData(current.char, "char", this.characters),
+					nextChar = null,
+					charPair = null;
+				// track Node
+				this._trackNode(context, currentChar, index);
+				// if node has a next character
+				if (next) {
+					// get next char in sequence
+					nextChar = this._getLegendData(next.char, "char", this.characters);
+					// get char pair data
+					charPair = this._getLegendData(currentChar.char+nextChar.char, "pair", this.characterPairs);
+					// track NodePair
+					this._trackNodePair(context, charPair, index);
+				}
 			}
 		}
-		// return this
+		// return KernBot
 		return this;
 	}
 	/**
-	 * Keeps track on which node pairs have been tracked
+	 * Keeps track of which node have been kerned
+	 * @param {object} context – the HTML element which KernBot is acting on
+	 * @param [array] sequence - an array of character objects
+	 * @return (number) 0 or >1 - (0 if updated Node), (nodes.length > 1 if added new Node)
+	 */
+	KernBot.prototype._trackNode = function(context, node, index) {
+		// get node data
+		let checkNode = this._getLegendData(node.char, "key", this.nodes) || false,
+			checkContext = this._checkSameContext(checkNode.context, context) || false;
+		// check node exists in this context
+		if (checkNode && checkContext) {
+			// increase count of the this Node
+			checkNode._increaseCount(1);
+			// add the string index of this new instance of the Node
+			checkNode._addCharIndex(index);
+			// return true
+			return 0;
+		} else {
+			// create a new node to track in context
+			return this.nodes.push(new Node(context, node, index));
+		}
+	}
+	/**
+	 * Keeps track of input node pair in a given context
 	 * @param {object} context – the HTML element which KernBot is acting on
 	 * @param {object} pair - the character pair to make a node pair of
 	 * @param (num) index - the index of the first character in the node pair
 	 * @return 'this' this - makes method chainable
 	 */
-	KernBot.prototype._trackNodePairs = function(context, pair, index) {
-		// vars
-		let checkNode = this._getLegendData(pair.pair, "pair", this.nodePairs) || false;
+	KernBot.prototype._trackNodePair = function(context, node, index) {
+		// get node data
+		let checkNodePair = this._getLegendData(node.pair, "pair", this.nodePairs) || false,
+			checkContext = this._checkSameContext(checkNodePair.context, context) || false,
+			kerning = { "kern": null, "weight": null, "letterSpace": null },
+			fontSize = parseFloat(getComputedStyle(context).fontSize);
 		// check node exists in this context
-		if (checkNode) {
+		if (checkNodePair && checkContext) {
 			// increase count of the this Node
-			checkNode._increaseCount(1);
+			checkNodePair._increaseCount(1);
 			// add the string index of this new instance of the Node
-			checkNode._addCharIndexes(index);
+			checkNodePair._addCharPairIndex(index);
+			// return true
+			return true;
 		} else {
+			// gather kerning data for node
+			kerning.kern = ( Math.round((node.weight*100)/100).toFixed(2) / -100 ) * fontSize;
+			kerning.weight = node.weight;
+			kerning.letterSpace = kerning.kern.toString().substring(0, 5);
 			// create a new node pair to track in context
-			return this.nodePairs.push(new NodePair(context, pair, index));
+			return this.nodePairs.push(new NodePair(context, node, index, kerning));
 		}
 	}
 	/**
-	 * Updates the analytics for tracked Nodes
-	 * @return 'this' this - makes method chainable
+	 * Checks if two DOM elements are the same
+	 * @param {object} element - the element to find
+	 * @param {object} context - the context to check the element against
+	 * @return (boolean) T/F
 	 */
-	KernBot.prototype._updateNodeAnalytics = function() {
-		// sort all the nodes
-		if (this.nodes.sort(this._sortBy('count', true, parseInt))) {
-			// find most common
-			this.mostCommon = this.nodes.filter(function(node, index, array) { return index < 10; });
-			// find least common
-			this.leastCommon = this.nodes.filter(function(node, index, array) { return (node.count <= 1); });
-		}
-		// return this
-		return this;
+	KernBot.prototype._checkSameContext = function(element, context) {
+		return (element === context ? true : false);
 	}
 
 	// KERNBOT TRAINING
@@ -674,21 +709,33 @@ letter-spacing by comparing the character's stroke types to the adjacent letters
 			HTMLstring = "<ul>";
 		// loop through counted NodePairs
 		for (let i = 0; i < this.nodePairs.length; i++) {
+			// vars
+			let elm = this.nodePairs[i],
+				tag = elm.context.tagName.toLowerCase();
 			HTMLstring += "<li>";
-				HTMLstring += "<h3>";
-					HTMLstring += "“";
-					HTMLstring += "<span style=\"" + this.nodePairs[i].letterSpace + "\">";
-					HTMLstring += this.nodePairs[i].pair[0];
+				HTMLstring += "<" + tag + ">";
+					HTMLstring += "[";
+					HTMLstring += "<span style=\"letter-spacing:" + elm.letterSpace + "px;\">";
+					HTMLstring += elm.c1.char;
 					HTMLstring += "</span>";
 					HTMLstring += "<span>";
-					HTMLstring += this.nodePairs[i].pair[1];
-					HTMLstring += "</span>";
-					HTMLstring += "”";
-				HTMLstring += "</h3>";
+					HTMLstring += elm.c2.char;
+					HTMLstring += "</span>"
+					HTMLstring += "]";
+				HTMLstring += "</" + tag + ">";
+				HTMLstring += "<hr style=\"margin: 1em 0em\">";
 				HTMLstring += "<p>";
-					HTMLstring += "Kern Weight: " + this.nodePairs[i].weight;
+					HTMLstring += "HTML context: ";
+					HTMLstring += "&lt;" + tag + "&gt;";
 				HTMLstring += "<br>";
-					HTMLstring += "Count: " + this.nodePairs[i].count;
+					HTMLstring += "Kern Weight: ";
+					HTMLstring += elm.weight;
+				HTMLstring += "<br>";
+					HTMLstring += "Letter Spacing: ";
+					HTMLstring += elm.letterSpace + "px";
+				HTMLstring += "<br>";
+					HTMLstring += "Occurrences: ";
+					HTMLstring += elm.count;
 				HTMLstring += "</p>";
 			HTMLstring += "</li>";
 		}

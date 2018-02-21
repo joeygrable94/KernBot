@@ -113,7 +113,7 @@ p {
 /* paragraph-indent */
 p + p {
 	margin-top: calc( calc(-4 * var(--baselineUnit)) / calc(var(--baseFontEm) * var(--baseFontSize)) );
-	text-indent: var(--baseFontEm);
+	text-indent: var(--textParagraphIndent);
 }
 
 

@@ -25,8 +25,10 @@
 </head>
 <body>
 
+	<button onclick="runKernBot()">Run KernBot</button>
+
 	<h1 class="kern-bot">Kerning AI bot. AIAiaiai</h1>
-	<h2 class="kern-bot">Try kerning a heading 2.</h2>
+	<h2 class="kern-bot">Try kerning a heading 2.4 aiai</h2>
 	<h3 id="kern-H3">Try kerning a heading 3.</h3>
 	<p class="kern-Para">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam ultrices diam quis ipsum vehicula scelerisque. Praesent cursus, velit ac bibendum molestie, quam ante cursus massa, non laoreet mauris neque vitae risus. Fusce imperdiet hendrerit libero, non lobortis massa posuere sed. Nulla ut dolor at elit vestibulum tincidunt. Etiam ac ante ligula. Mauris dapibus tempus sapien non posuere. Morbi ultrices ornare enim cursus dignissim. Sed vel urna a erat egestas tincidunt.</p>
 	<h4>h4 Here is a kerned h4 with no class or ID. h4</h4>
@@ -34,23 +36,26 @@
 
 	<div id="KernBotNodePairs"></div>
 
-<script src="http://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
+<!--<script src="http://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>-->
 <script type="text/javascript" src="./src/KernBot.1.2.0.js"></script>
 <script type="text/javascript">
+function runKernBot() {
 
-// load KernBot
-let TestKernBot = new KernBot();
+	// load KernBot
+	let TestKernBot = new KernBot();
 
-// run KernBot's primary Kern Function - supply selector options 
-TestKernBot.kern({
-	classes: [".kern-bot", ".kern-Para"],
-	ids: ["#kern-H3", "#kern-Lorem"],
-	tags: "H4"
-});
+	// run KernBot's primary Kern Function - supply selector options 
+	TestKernBot.kern({
+		classes: [".kern-bot", ".kern-Para"],
+		ids: ["#kern-H3", "#kern-Lorem"],
+		tags: "h4",
+		track: true
+	});
 
-// write Nodes to HTML
-//TestKernBot.writeNodePairsToHTML("#KernBotNodePairs");
+	// write Nodes to HTML
+	//TestKernBot.writeNodePairsToHTML("#KernBotNodePairs");
 
+};
 </script>
 </body>
 </html>
