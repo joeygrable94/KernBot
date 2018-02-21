@@ -1,11 +1,14 @@
 /* custom styles */
-#KernBotNodePairs {
+body {
 	widows: 100%;
 	max-width: 960px;
 	margin: 0 auto;
 	padding: var(--baseFontEm) 0em;
 }
 
+#KernBotNodePairs {
+	margin-top: var(--baseFontEm);
+}
 #KernBotNodePairs ul {
 	list-style-type: none;
 	display: grid;

@@ -59,6 +59,7 @@ Stroke Type  | Name             | Data Code
  /           |  slant up        |  u
  \           |  slant down      |  d
  *           |  spacial case    |  s
+             |  no case         |  n
 -------------+------------------+------------
 ```
 
@@ -77,7 +78,7 @@ Code  | Stroke Combinations:
  ll   |  line-line
  ol   |  curve-line
  lo   |  line-curve
- cc   |  curve-curve
+ oo   |  curve-curve
       |
  //   |  slantUp-slantUp
  \\   |  slantDown-slantDown

@@ -25,7 +25,7 @@
 </head>
 <body>
 
-	<h1 class="kern-bot">Kerning AI bot.</h1>
+	<h1 class="kern-bot">Kerning AI bot. AIAiaiai</h1>
 	<h2 class="kern-bot">Try kerning a heading 2.</h2>
 	<h3 id="kern-H3">Try kerning a heading 3.</h3>
 	<p class="kern-Para">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam ultrices diam quis ipsum vehicula scelerisque. Praesent cursus, velit ac bibendum molestie, quam ante cursus massa, non laoreet mauris neque vitae risus. Fusce imperdiet hendrerit libero, non lobortis massa posuere sed. Nulla ut dolor at elit vestibulum tincidunt. Etiam ac ante ligula. Mauris dapibus tempus sapien non posuere. Morbi ultrices ornare enim cursus dignissim. Sed vel urna a erat egestas tincidunt.</p>
@@ -38,6 +38,7 @@
 <script type="text/javascript" src="./src/KernBot.1.2.0.js"></script>
 <script type="text/javascript">
 
+// load KernBot
 let TestKernBot = new KernBot();
 
 // run KernBot's primary Kern Function - supply selector options 
@@ -47,11 +48,8 @@ TestKernBot.kern({
 	tags: "H4"
 });
 
-// run KernBot on an individual selector
-//TestKernBot.kernElement( $('#kern-H3') );
-
 // write Nodes to HTML
-TestKernBot.writeNodePairsToHTML("#KernBotNodePairs");
+//TestKernBot.writeNodePairsToHTML("#KernBotNodePairs");
 
 </script>
 </body>
