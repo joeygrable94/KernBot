@@ -135,7 +135,6 @@ letter-spacing by comparing the character's stroke types to the adjacent letters
 		}
 		_increaseCount(val) { return this.count += val; }
 		_addCharPairIndex(index) { return this.indexes.push([index, index+1]); }
-		//_addLetterSpace(value) { return this.letterSpace = value; }
 	}
 
 	//	CONSTANTS
@@ -714,14 +713,14 @@ letter-spacing by comparing the character's stroke types to the adjacent letters
 				tag = elm.context.tagName.toLowerCase();
 			HTMLstring += "<li>";
 				HTMLstring += "<" + tag + ">";
-					HTMLstring += "[";
+					HTMLstring += "“";
 					HTMLstring += "<span style=\"letter-spacing:" + elm.letterSpace + "px;\">";
 					HTMLstring += elm.c1.char;
 					HTMLstring += "</span>";
 					HTMLstring += "<span>";
 					HTMLstring += elm.c2.char;
 					HTMLstring += "</span>"
-					HTMLstring += "]";
+					HTMLstring += "”";
 				HTMLstring += "</" + tag + ">";
 				HTMLstring += "<hr style=\"margin: 1em 0em\">";
 				HTMLstring += "<p>";
