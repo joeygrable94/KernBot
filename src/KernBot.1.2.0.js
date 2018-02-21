@@ -56,7 +56,9 @@ letter-spacing by comparing the character's stroke types to the adjacent letters
 			};
 			this.kerning = strokeData;
 			this.weight = strokeData.weight;
+			this.letterSpace;
 		}
+		_addLetterSpace(value) { return this.letterSpace = value; }
 	};
 	// strokes
 	class Stroke {
@@ -87,7 +89,7 @@ letter-spacing by comparing the character's stroke types to the adjacent letters
 	class Node {
 		constructor(context, character, index) {
 			this.context = context;
-			this.charIndex = [index];
+			this.charIndexes = [index];
 			this.key = character.char;
 			this.character = character;
 			this.kerning = character.kerning;
@@ -95,8 +97,34 @@ letter-spacing by comparing the character's stroke types to the adjacent letters
 			this._increaseCount(1);
 		}
 		_increaseCount(val) { return this.count += val; }
-		_addCharIndex(index) { return this.charIndex.push(index); }
+		_addCharIndex(index) { return this.charIndexes.push(index); }
 	};
+	// node pairs
+	class NodePair {
+		constructor(context, charPair, index) {
+			this.context = context;
+			this.charIndexes = [ [index, index+1] ];
+			this.pair = charPair.pair;
+			this.c1 = {
+				char: charPair.c1.char,
+				strokes: {
+					before: charPair.c1.strokes.before,
+					after: charPair.c1.strokes.after
+				}
+			};
+			this.c2 = {
+				char: charPair.c2.char,
+				strokes: {
+					before: charPair.c2.strokes.before,
+					after: charPair.c2.strokes.after
+				}
+			};
+			this.count = 0;
+			this._increaseCount(1);
+		}
+		_increaseCount(val) { return this.count += val; }
+		_addCharIndexes(index) { return this.charIndexes.push([index, index+1]); }
+	}
 
 	//	CONSTANTS
 	// ===========================================================================
@@ -229,6 +257,7 @@ letter-spacing by comparing the character's stroke types to the adjacent letters
 		self.HTMLelements = [];
 		self.sequences = [];
 		self.nodes = [];
+		self.nodePairs = [];
 		self.mostCommon = [];
 		self.leastCommon = [];
 
@@ -268,12 +297,11 @@ letter-spacing by comparing the character's stroke types to the adjacent letters
 			// prepare element and HTML string
 			let element = self.HTMLelements[e],
 				string = self.HTMLelements[e].innerHTML,
-				fontSize = parseFloat(getComputedStyle(element).fontSize),
 				sequence = self._gatherSequence(string),
 				HTMLstring = "";
 
 			// calculate the kerning for the sequence
-			sequence = self._calcSequenceKerning(sequence, fontSize);
+			sequence = self._calcSequenceKerning(element, sequence);
 
 			// prepare HTML string to write to DOM
 			HTMLstring = self._prepareHTMLString(sequence);
@@ -502,9 +530,10 @@ letter-spacing by comparing the character's stroke types to the adjacent letters
 	 * @param [array] sequence - the letters to calculate kerning for
 	 * @return [array] output - an ordered sequence of kerned Nodes
 	 */
-	KernBot.prototype._calcSequenceKerning = function(sequence, font) {
+	KernBot.prototype._calcSequenceKerning = function(context, sequence) {
 		// output
-		let output = [];
+		let output = [],
+			fontSize = parseFloat(getComputedStyle(context).fontSize);
 		// loop through sequence
 		for (let i = 0; i < sequence.length; i++) {
 			// vars
@@ -513,7 +542,7 @@ letter-spacing by comparing the character's stroke types to the adjacent letters
 				nextChar = false,
 				charPair = null,
 				kerning = 0,
-				letterSpace = "0px";
+				letterSpace = "";
 			// check sequence loop not last letter, no next char, break out of loop
 			if (!next) { break; }
 			// get next char in sequence
@@ -525,11 +554,15 @@ letter-spacing by comparing the character's stroke types to the adjacent letters
 				this.characterPairs
 			);
 			// calculate kerning & letter-spacing
-			kerning = ( Math.round((charPair.weight*100)/100).toFixed(2) / -100 ) * font;
-			kerning = kerning.toString().substring(0, 5);
+			kerning = ( Math.round((charPair.weight*100)/100).toFixed(2) / -100 ) * fontSize;
+			letterSpace = kerning.toString().substring(0, 5);
 			// set the kerning of the sequence Node
-			sequence[i]._addKerning(charPair.weight);
-			sequence[i]._addLetterSpace(kerning);
+			sequence[i]._addKerning(kerning);
+			sequence[i]._addLetterSpace(letterSpace);
+			
+			// create a NodePair to track
+			this._trackNodePairs(context, charPair, i);
+
 			// add sequence item to output
 			output.push(sequence[i]);
 		}
@@ -571,7 +604,8 @@ letter-spacing by comparing the character's stroke types to the adjacent letters
 	// ===========================================================================
 	/**
 	 * Keeps track of which node have been kerned
-	 * @param {object} pair – the node to track
+	 * @param {object} context – the HTML element which KernBot is acting on
+	 * @param [array] sequence - an array of character objects
 	 * @return 'this' this - makes method chainable
 	 */
 	KernBot.prototype._trackNodes = function(context, sequence) {
@@ -579,7 +613,7 @@ letter-spacing by comparing the character's stroke types to the adjacent letters
 		for (let i = 0; i < sequence.length; i++) {
 			// vars
 			let character = sequence[i],
-				checkNode = this._getLegendData(sequence[i].char, "key", this.nodes) || null;
+				checkNode = this._getLegendData(sequence[i].char, "key", this.nodes) || false;
 			// check node exists in this context
 			if (checkNode) {
 				// increase count of the this Node
@@ -593,7 +627,27 @@ letter-spacing by comparing the character's stroke types to the adjacent letters
 		}
 		// return this
 		return this;
-
+	}
+	/**
+	 * Keeps track on which node pairs have been tracked
+	 * @param {object} context – the HTML element which KernBot is acting on
+	 * @param {object} pair - the character pair to make a node pair of
+	 * @param (num) index - the index of the first character in the node pair
+	 * @return 'this' this - makes method chainable
+	 */
+	KernBot.prototype._trackNodePairs = function(context, pair, index) {
+		// vars
+		let checkNode = this._getLegendData(pair.pair, "pair", this.nodePairs) || false;
+		// check node exists in this context
+		if (checkNode) {
+			// increase count of the this Node
+			checkNode._increaseCount(1);
+			// add the string index of this new instance of the Node
+			checkNode._addCharIndexes(index);
+		} else {
+			// create a new node pair to track in context
+			return this.nodePairs.push(new NodePair(context, pair, index));
+		}
 	}
 	/**
 	 * Updates the analytics for tracked Nodes
@@ -619,22 +673,22 @@ letter-spacing by comparing the character's stroke types to the adjacent letters
 		let trainerHTML = document.getElementById(trainerID.substring(1)),
 			HTMLstring = "<ul>";
 		// loop through counted NodePairs
-		for (let i = 0; i < this.nodes.length; i++) {
+		for (let i = 0; i < this.nodePairs.length; i++) {
 			HTMLstring += "<li>";
 				HTMLstring += "<h3>";
 					HTMLstring += "“";
-					HTMLstring += "<span style=\"" + this.nodes[i].letterSpace + "\">";
-					HTMLstring += this.nodes[i].pair[0];
+					HTMLstring += "<span style=\"" + this.nodePairs[i].letterSpace + "\">";
+					HTMLstring += this.nodePairs[i].pair[0];
 					HTMLstring += "</span>";
 					HTMLstring += "<span>";
-					HTMLstring += this.nodes[i].pair[1];
+					HTMLstring += this.nodePairs[i].pair[1];
 					HTMLstring += "</span>";
 					HTMLstring += "”";
 				HTMLstring += "</h3>";
 				HTMLstring += "<p>";
-					HTMLstring += "Kern Weight: " + this.nodes[i].weight;
+					HTMLstring += "Kern Weight: " + this.nodePairs[i].weight;
 				HTMLstring += "<br>";
-					HTMLstring += "Count: " + this.nodes[i].count;
+					HTMLstring += "Count: " + this.nodePairs[i].count;
 				HTMLstring += "</p>";
 			HTMLstring += "</li>";
 		}
