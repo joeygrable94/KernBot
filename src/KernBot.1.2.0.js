@@ -93,6 +93,21 @@ letter-spacing by comparing the character's stroke types to the adjacent letters
 			return Math.round(this.s1.weight + this.s2.weight);
 		}
 	}
+	// HTML tags
+	class Tag {
+		constructor(elm) {
+			this.char = elm;
+		}
+	}
+	// sequences
+	class Sequence {
+		constructor(context, string, HTML, sequence) {
+			this.context = context;
+			this.string = string;
+			this.HTML = HTML;
+			this.sequence = sequence;
+		}
+	}
 	// nodes
 	class Node {
 		constructor(context, character, index) {
@@ -234,12 +249,19 @@ letter-spacing by comparing the character's stroke types to the adjacent letters
 		{ "char": "}", "before": "s", "after": "n" },
 		{ "char": "/", "before": "s", "after": "s" }
 	];
+	const selectorsDefault = ["h1", "h2", "h3", "h4", "h5", "h6", "p","a","span"];
+	//const selectorsDefault = ["h1", "h2"];
 
 	//	KernBot
 	// ===========================================================================
-	let KernBot = function() {
-		// return a new LazyLoader object that initializes the passed elements
-		return new KernBot.init(characters, strokes);
+	let KernBot = function(input) {
+		// set options default
+		input = input || {
+			"track": true,
+			"selectors": selectorsDefault,
+		};
+		// return a new KernBot.init object that initializes the options
+		return new KernBot.init(input, characters, strokes);
 	}
 	/**
 	 * KernBot initialization function
@@ -250,8 +272,8 @@ letter-spacing by comparing the character's stroke types to the adjacent letters
 	 * @return log message to console
 	 */
 	// KernBot object initialization
-	KernBot.init = function(characters, strokes) {
-		
+	KernBot.init = function(options, characters, strokes) {
+
 		// vars
 		let self = this;
 		self.strokes = strokes;
@@ -259,14 +281,12 @@ letter-spacing by comparing the character's stroke types to the adjacent letters
 		self.characters = self._buildCharacters(characters);
 		self.characterPairs = self._buildPairs("characters");
 
-		// for KernBot operations
-		self.options = {
-			"classes": null,
-			"ids": null,
-			"tags": null
-		}
-		self.selectors = [];
-		self.HTMLelements = [];
+		// operations
+		self.track = options.track;
+		self.selectors = options.selectors;
+		self.HTMLelements = self._gatherElements(self.selectors);
+
+		// data tracking
 		self.sequences = [];
 		self.nodes = [];
 		self.nodePairs = [];
@@ -278,63 +298,38 @@ letter-spacing by comparing the character's stroke types to the adjacent letters
 		console.log("=========================");
 	}
 
-	//	KernBot PRIMARY METHODS
+	//	Kern CONTROLLER
 	// ===========================================================================
 	/**
 	 * Run KernBot's Kern f(x)
 	 * @param [array] options - an array of classes, IDs, and/or HTML tags to kern
 	 * @return 'this' self - makes method chainable
 	 */
-	KernBot.prototype.kern = function(options) {
-
+	KernBot.prototype.kern = function() {
 		// store self
 		let self = this;
-
-		// compile options
-		self.options.classes = options.classes || null,
-		self.options.ids = options.ids || null,
-		self.options.tags = options.tags || null;
-		self.options.track = options.track || true;
-
-		// gather the selectors to get the HTML elements
-		self._gatherSelectors(self.options.classes)
-			._gatherSelectors(self.options.ids)
-			._gatherSelectors(self.options.tags);
-		
-		// gather the HTML elements to use KernBot on
-		self._gatherElements(self.selectors);
-
 		// loop through each HTML element
 		for (let e = 0; e < self.HTMLelements.length; e++) {
-
-			// prepare element and HTML string
-			let element = self.HTMLelements[e];
-
 			// check element already been kerned, break out of this loop
-			if (self._checkElementKerned(element)) { break; }
-
-			let string = self.HTMLelements[e].innerHTML,
-				sequence = self._gatherSequence(string),
+			if (self._checkElementKerned(self.HTMLelements[e])) { break; }
+			// gather sequence vars
+			let element = self.HTMLelements[e],
+				string = element.innerHTML,
+				sequence = self._stringToSequence(string),
 				HTMLstring = "";
-
 			// calculate the kerning for the sequence
 			sequence = self._calcSequenceKerning(element, sequence);
-
 			// prepare HTML string to write to DOM
 			HTMLstring = self._prepareHTMLString(sequence);
-
 			// update the elements HTML with the span injected kerning data
 			self._updateElementHTML(element, HTMLstring);
-
-			// add this sequence to the array of sequence KernBot is listening too
-			self.sequences.push({ "context": element, "sequence": sequence });
+			// add this sequence to the array of sequences KernBot acts on
+			self.sequences.push(new Sequence(element, string, HTMLstring, sequence));
 		}
-
 		// update KernBot tracking
-		if (self.options.track) {
+		if (self.track) {
 			self._update();
 		}
-
 		// return KernBot
 		return self;
 	}
@@ -446,45 +441,13 @@ letter-spacing by comparing the character's stroke types to the adjacent letters
 		}
 	}
 	/**
-	 * Updates the KernBot array of selectors
-	 * @param "string" or [array] selector - a selector string or array of selector strings
-	 * @return 'this' this - makes method chainable
-	 */
-	KernBot.prototype._gatherSelectors = function(options) {
-		// ensure options set
-		if (options !== null) {
-			// vars
-			let check = options.constructor.name;
-			// check option types
-			switch (check) {
-				// single element
-				case "String":
-					// add selector to output
-					this.selectors.push(options);
-					break;
-				// array of elements
-				case "Array":
-					// loop through array
-					for (let x = 0; x < options.length; x++) {
-						// add selector to output
-						this.selectors.push(options[x]);
-					}
-					break;
-				// incorrect input supplied
-				default:
-					this.log("incorrect input supplied");
-					break;
-			}
-		}
-		// return this
-		return this;
-	}
-	/**
 	 * Updates the KernBot array of HTML elements
 	 * @param "string" selector - an array of selectors to get the HTML for
-	 * @return 'this' this - makes method chainable
+	 * @return [array] output - an array of HTML elements
 	 */
 	KernBot.prototype._gatherElements = function(selectors) {
+		// output
+		let output = [];
 		// loop through selectors
 		for (let i = 0; i < selectors.length; i++) {
 			// switch
@@ -494,7 +457,7 @@ letter-spacing by comparing the character's stroke types to the adjacent letters
 					// get ID elements
 					let byID = document.getElementById(selectors[i].substring(1));
 					// add HTMLelement
-					this.HTMLelements.push(byID);
+					output.push(byID);
 					break;
 				// Classes
 				case ".":
@@ -503,7 +466,7 @@ letter-spacing by comparing the character's stroke types to the adjacent letters
 					// loop through individual elements
 					for (let x = 0; x < byClass.length; x++) {
 						// add HTMLelement
-						this.HTMLelements.push(byClass[x]);
+						output.push(byClass[x]);
 					}
 					break;
 				// HTML tag
@@ -513,51 +476,90 @@ letter-spacing by comparing the character's stroke types to the adjacent letters
 					// loop through individual elements
 					for (let x = 0; x < byTag.length; x++) {
 						// add HTMLelement
-						this.HTMLelements.push(byTag[x]);
+						output.push(byTag[x]);
 					}
 					break;
 			}
 		}
-		// return KernBot
-		return this;
+		// return output
+		return output;
 	}
 	/**
-	 * 
+	 * Checks KernBot sequences to see if the element has already been kerned
+	 * @param {object} element - an HTML element
+	 * @return (boolean) T/F - True if element exists in sequence
 	 */
 	KernBot.prototype._checkElementKerned = function(element) {
-		// check if hase children
-		let children = element.childNodes || false;
-		// loop through all the children elements
-		for (let i = 0; i < children.length; i++) {
-			// check if child element already contains class 'char-#'
-			if (-1 != new String(children[i].className).indexOf("char-")) {
-				// element already kerned
-				return true;
-			}
+		// loop through all the sequences KernBot has already acted on
+		for (let i = 0; i < this.sequences.length; i++) {
+			// check element exists in the sequence context
+			return (this.sequences[i].context === element ? true : false);
 		}
-		// element not kerned
-		return false;
 	}
 	/**
-	 * Outputs a sequence of Nodes
+	 * Outputs a sequence of characters and tags
 	 * @param "string" string - the string the break down into
 	 * @return [array] output - an ordered sequence of Nodes
 	 */
-	KernBot.prototype._gatherSequence = function(string) {
+	KernBot.prototype._stringToSequence = function(string) {
 		// output
-		let output = [];
-		// loop through the string
-		for (let i = 0; i < string.length; i++) {
-			// vars
-			let currentChar = this._getLegendData(string[i], "char", this.characters);
-			// add character to output
-			output.push(new Character(
-				currentChar.char,
-				currentChar.strokes.before,
-				currentChar.strokes.after,
-			));
+		let output = [],
+			elementExpression = /(<([^>]+)>)/ig,
+			tags = string.match(elementExpression),
+			parsedString = [string];
+		// check if the string has HTML tags inside it
+		if (null !== tags) {
+			parsedString = this._parseStringFragments(string, tags);
+		}
+		// loop through parsed string fragments
+		for (let x = 0; x < parsedString.length; x++) {
+			// check if string fragment is an HTML tag
+			if (elementExpression.test(parsedString[x])) {
+				// add tag to output
+				output.push(new Tag(parsedString[x]));
+			} else {
+				// loop through the string
+				for (let y = 0; y < parsedString[x].length; y++) {
+					// vars
+					let currentChar = this._getLegendData(parsedString[x][y], "char", this.characters);
+					// add character to output
+					output.push(new Character(currentChar.char, currentChar.strokes.before, currentChar.strokes.after));
+				}
+			}
 		}
 		// return sequence
+		return output;
+	}
+	/**
+	 * Outputs a array of string fragments
+	 * @param "string" string - the string the break down into
+	 * @param [array] tags - a list of tags within the string
+	 * @return [array] output - an array of string fragments
+	 */
+	KernBot.prototype._parseStringFragments = function(string, tags) {
+		// output
+		let output = [];
+		// loop through tags
+		for (let i = 0; i < tags.length+1; i++) {
+			// if last loop
+			if (i === tags.length) {
+				// add remaining string
+				output.push(string);
+				// break out of loop
+				break;
+			}
+			// string parse vars
+			let start = string.indexOf(tags[i]),
+				end = start + tags[i].length,
+				tag = string.slice(start, end),
+				before = string.slice(0,start);
+			// update parsed string
+			string = string.slice(end);
+			// add element fragment
+			output.push(before);
+			output.push(tag);
+		}
+		// return output
 		return output;
 	}
 	/**
@@ -572,23 +574,25 @@ letter-spacing by comparing the character's stroke types to the adjacent letters
 		// loop through sequence
 		for (let i = 0; i < sequence.length; i++) {
 			// vars
-			let currentChar = this._getLegendData(sequence[i].char, "char", this.characters),
-				classIndex = i+1,
+			let classIndex = i+1,
+				current = sequence[i],
 				next = sequence[i+1],
+				afterNext = sequence[i+2],
+				currentChar = null,
 				nextChar = null,
 				charPair = null,
 				kerning = 0,
 				letterSpace = "";
-			// check sequence loop, has a next character to calculate kerning with
-			if (next) {
-				// get next char in sequence
-				nextChar = this._getLegendData(next.char, "char", this.characters);
-				// get char pair data
-				charPair = this._getLegendData(
-					currentChar.char + nextChar.char,
-					"pair",
-					this.characterPairs
-				);
+			// if no next character, break out of look
+			if (undefined === next) { break; }
+			// get char pair data
+			charPair = this._getLegendData(
+				current.char + next.char,
+				"pair",
+				this.characterPairs
+			) || null;
+			// calc kerning if there is a character pair
+			if (null !== charPair) {
 				// calculate kerning & letter-spacing
 				kerning = ( Math.round((charPair.weight*100)/100).toFixed(2) / -100 ) * fontSize;
 				letterSpace = kerning.toString().substring(0, 5);
@@ -657,7 +661,7 @@ letter-spacing by comparing the character's stroke types to the adjacent letters
 				// track Node
 				this._trackNode(context, currentChar, index);
 				// if node has a next character
-				if (next) {
+				if (undefined !== currentChar && next && next.constructor.name !== "Tag") {
 					// get next char in sequence
 					nextChar = this._getLegendData(next.char, "char", this.characters);
 					// get char pair data
@@ -667,6 +671,8 @@ letter-spacing by comparing the character's stroke types to the adjacent letters
 				}
 			}
 		}
+		// log KernBot
+		console.log(this);
 		// return KernBot
 		return this;
 	}
@@ -677,20 +683,23 @@ letter-spacing by comparing the character's stroke types to the adjacent letters
 	 * @return (number) 0 or >1 - (0 if updated Node), (nodes.length > 1 if added new Node)
 	 */
 	KernBot.prototype._trackNode = function(context, node, index) {
-		// get node data
-		let checkNode = this._getLegendData(node.char, "key", this.nodes) || false,
-			checkContext = this._checkSameContext(checkNode.context, context) || false;
-		// check node exists in this context
-		if (checkNode && checkContext) {
-			// increase count of the this Node
-			checkNode._increaseCount(1);
-			// add the string index of this new instance of the Node
-			checkNode._addCharIndex(index);
-			// return true
-			return 0;
-		} else {
-			// create a new node to track in context
-			return this.nodes.push(new Node(context, node, index));
+		// ensure input is a Node
+		if (undefined !== node) {
+			// get node data
+			let checkNode = this._getLegendData(node.char, "key", this.nodes) || false,
+				checkContext = this._checkSameContext(checkNode.context, context) || false;
+			// check node exists in this context
+			if (checkNode && checkContext) {
+				// increase count of the this Node
+				checkNode._increaseCount(1);
+				// add the string index of this new instance of the Node
+				checkNode._addCharIndex(index);
+				// return true
+				return 0;
+			} else {
+				// create a new node to track in context
+				return this.nodes.push(new Node(context, node, index));
+			}
 		}
 	}
 	/**
@@ -737,6 +746,9 @@ letter-spacing by comparing the character's stroke types to the adjacent letters
 	// ===========================================================================
 	// output nodes to page
 	KernBot.prototype.writeNodePairsToHTML = function(trainerID) {
+
+		console.log(this);
+
 		// vars
 		let trainerHTML = document.getElementById(trainerID.substring(1)),
 			HTMLstring = "<ul>";
@@ -782,6 +794,7 @@ letter-spacing by comparing the character's stroke types to the adjacent letters
 	KernBot.init.prototype = KernBot.prototype;
 	// create "$KB" alias in the global object (shorthand)
 	global.KernBot = global.$KB = KernBot;
-
+	// return true if everything loaded properly
+	return true;
 // execute IIFE and pass dependencies
 } (window, undefined));
