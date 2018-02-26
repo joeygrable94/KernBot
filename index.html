@@ -28,12 +28,12 @@
 	<button onclick="runKernBot()">Run KernBot</button>
 	<button onclick="analyzeKernBotSequences()">Analyze Kerning</button>
 
-	<h1 class="kern-bot">Kerning AI <em>bot</em>. AIAiaiai</h1>
+	<h1 class="kern-bot">Hello &amp; <em>World</em>!</h1>
 	<h2 class="kern-bot">Try kerning a heading 2.4 aiai</h2>
 	<h3 id="kern-H3">Try kerning a heading 3.</h3>
 	<p class="kern-Para">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam ultrices diam quis ipsum vehicula scelerisque. Praesent cursus, velit ac bibendum molestie, quam ante cursus massa, non laoreet mauris neque vitae risus. Fusce imperdiet hendrerit libero, non lobortis massa posuere sed. Nulla ut dolor at elit vestibulum tincidunt. Etiam ac ante ligula. Mauris dapibus tempus sapien non posuere. Morbi ultrices ornare enim cursus dignissim. Sed vel urna a erat egestas tincidunt.</p>
 	<h4>h4 Here is a kerned h4 with no class or ID. h4</h4>
-	<p id="kern-Lorem">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam ultrices diam quis ipsum vehicula scelerisque. Praesent cursus, velit ac bibendum molestie, quam ante cursus massa, non laoreet mauris neque vitae risus. Fusce imperdiet hendrerit libero, non lobortis massa posuere sed. Nulla ut dolor at elit vestibulum tincidunt. Etiam ac ante ligula. Mauris dapibus tempus sapien non posuere. Morbi ultrices ornare enim cursus dignissim. Sed vel urna a erat egestas tincidunt.</p>
+	<p class="kern-Lorem">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam ultrices diam quis ipsum vehicula scelerisque. Praesent cursus, velit ac bibendum molestie, quam ante cursus massa, non laoreet mauris neque vitae risus. Fusce imperdiet hendrerit libero, non lobortis massa posuere sed. Nulla ut dolor at elit vestibulum tincidunt. Etiam ac ante ligula. Mauris dapibus tempus sapien non posuere. Morbi ultrices ornare enim cursus dignissim. Sed vel urna a erat egestas tincidunt.</p>
 
 	<div id="KernBotNodePairs"></div>
 
@@ -41,7 +41,9 @@
 <script type="text/javascript">
 
 // load KernBot
-let TestKernBot = new KernBot();
+let TestKernBot = new KernBot({
+	"selectors": ["h1", "h2", "h3", "h4"]
+});
 
 function runKernBot() {
 	// run KernBot's primary Kern Function - define your options

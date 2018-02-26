@@ -82,7 +82,7 @@ h6, .h6 {
 		font-size: var(--msUp2);
 		line-height: calc( calc(6 * var(--baselineUnit)) / calc(var(--msUp2) * var(--baseFontSize)) );
 	}
-	p { text-align: justify; }
+	/*p { text-align: justify; }*/
 }
 @media (min-width: 56.25em) {
 	h1, .h1 {
