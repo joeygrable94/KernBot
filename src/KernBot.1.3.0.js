@@ -1,7 +1,7 @@
 /*
 
 Author: Joey Grable
-Version: 1.2.0
+Version: 1.3.0
 GIT: github.com/joeygrable94/KernBot
 
 A javascript library that dynamically kerns characters based on their font size.
@@ -1035,6 +1035,7 @@ letter-spacing by comparing the character's stroke types to the adjacent letters
 	/**
 	 * Keeps track of which node have been kerned
 	 * @param {object} context – the HTML element which KernBot is acting on
+	 * @param (number) index - the first chars index in <span class="char-INDEX">
 	 * @param [array] sequence - an array of character objects
 	 * @return (number) 0 or >1 - (0 if updated Node), (nodes.length > 1 if added new Node)
 	 */
@@ -1047,14 +1048,19 @@ letter-spacing by comparing the character's stroke types to the adjacent letters
 			checkNode._increaseCount(1);
 			// add the string index of this new instance of the node
 			checkNode._addCharIndex(index);
-			// return true
-			return true;
+			// return 0
+			return 0;
 		}
 		// add node to track
 		this.nodes.push(node);
 	}
-
-
+	/**
+	 * Keeps track of kerned node pairs in a context
+	 * @param {object} context – the HTML element which KernBot is acting on
+	 * @param (number) index - the first chars index in <span class="char-INDEX">
+	 * @param {object} nodePair - the NodePair to track
+	 * @return (number) 0 or >1 - (0 if updated Node), (nodes.length > 1 if added new Node)
+	 */
 	KernBot.prototype._trackNodePair = function(context, index, nodePair) {
 		// vars
 		let checkNode = this._checkSameNodePairExists(context, nodePair);
@@ -1064,8 +1070,8 @@ letter-spacing by comparing the character's stroke types to the adjacent letters
 			checkNode._increaseCount(1);
 			// add the string index of this new instance of the nodePair
 			checkNode._addCharPairIndex(index, index+1);
-			// return true
-			return true;
+			// return 0
+			return 0;
 		}
 		// add nodePair to track
 		this.nodePairs.push(nodePair);
@@ -1162,7 +1168,7 @@ letter-spacing by comparing the character's stroke types to the adjacent letters
 			HTMLstring += "<li>";
 				HTMLstring += "<" + tag + ">";
 					HTMLstring += "“";
-					HTMLstring += "<span style=\"letter-spacing:" + elm.letterSpace + "px;\">";
+					HTMLstring += "<span style=\"letter-spacing:" + elm.letterSpace + ";\">";
 					HTMLstring += elm.c1.char;
 					HTMLstring += "</span>";
 					HTMLstring += "<span>";
@@ -1179,7 +1185,7 @@ letter-spacing by comparing the character's stroke types to the adjacent letters
 					HTMLstring += elm.weight;
 				HTMLstring += "<br>";
 					HTMLstring += "Letter Spacing: ";
-					HTMLstring += elm.letterSpace + "px";
+					HTMLstring += elm.letterSpace + "";
 				HTMLstring += "<br>";
 					HTMLstring += "Occurrences: ";
 					HTMLstring += elm.count;

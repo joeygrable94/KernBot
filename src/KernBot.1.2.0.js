@@ -1,7 +1,7 @@
 /*
 
 Author: Joey Grable
-Version: 1.1.0
+Version: 1.2.0
 GIT: github.com/joeygrable94/KernBot
 
 A javascript library that dynamically kerns characters based on their font size.
