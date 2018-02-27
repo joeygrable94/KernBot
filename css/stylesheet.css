@@ -1,22 +1,26 @@
 /* custom styles */
-body {
-	widows: 100%;
-	max-width: 960px;
+.wrapper {
+	width: 100%;
 	margin: 0 auto;
-	padding: var(--baseFontEm) 0em;
+	padding: 2em;
 }
 
 #KernBotNodePairs {
-	margin-top: var(--baseFontEm);
+	margin-top: 2em;
 }
 #KernBotNodePairs ul {
 	list-style-type: none;
 	display: grid;
 	grid-template-columns: repeat(4, minmax(200px, 1fr));
 	align-items: end;
+	margin: 0;
 }
 
 #KernBotNodePairs ul li {
-	padding: var(--baseFontEm);
-	margin-bottom: var(--msUp4);
+	padding: 1em;
+	margin-bottom: 4em;
+}
+
+.btn-group {
+	margin-bottom: 2em;
 }

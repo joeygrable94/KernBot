@@ -22,17 +22,6 @@ letter-spacing by comparing the character's stroke types to the adjacent letters
 
 	//	CLASSES
 	// ===========================================================================
-	/*
-	class Tracker {
-		constructor() {
-			this.count = 0;
-			this.indexes = [];
-		}
-		_increaseCount(val = 1) { return this.count += val; }
-		_addCharIndex(index) { return this.indexes.push( index ); }
-		_addCharPairIndex(index) { return this.indexes.push([index, index+1]); }
-	}
-	*/
 	// characters
 	class Character {
 		constructor(char, before, after) {
@@ -126,8 +115,11 @@ letter-spacing by comparing the character's stroke types to the adjacent letters
 			this.count = 0;
 			this._increaseCount(1);
 		}
+		// add kerning data to instance
 		_addKerning(val) { return this.kerning = val; }
-		_increaseCount(val = 1) { return this.count += val; }
+		// increase the instance count
+		_increaseCount(val=1) { return this.count += val; }
+		// add index to instance
 		_addCharIndex(index) { return this.indexes.push( index ); }
 	};
 	// node pairs
@@ -159,18 +151,16 @@ letter-spacing by comparing the character's stroke types to the adjacent letters
 			this._increaseCount(1);
 			this._calcKerning();
 		}
-		// increase the existance count
-		_increaseCount(val) { return this.count += val; }
-		// add a pair of indexes of where in a sequence the charPair exists
-		_addCharPairIndex(pos1, pos2) {
-			return this.indexes.push([pos1, pos2]);
-		}
 		// calc kerning relative to context fontsize
 		_calcKerning() {
 			let fontSize = parseFloat(getComputedStyle(this.context).fontSize);
 			this.kern = ( Math.round((this.weight*100)/100).toFixed(2) / 100 ) * fontSize;
 			this.letterSpace = "-" + this.kern.toString().substring(0, 5) + "px";
 		}
+		// increase the existance count
+		_increaseCount(val=1) { return this.count += val; }
+		// add a pair of indexes of where in a sequence the charPair exists
+		_addCharIndex(pos) { return this.indexes.push([pos, pos+1]); }
 	}
 	// sequences
 	class Sequence {
@@ -251,11 +241,15 @@ letter-spacing by comparing the character's stroke types to the adjacent letters
 		{ "char": ".", "before": "s", "after": "n" },
 		{ "char": ",", "before": "s", "after": "n" },
 		{ "char": ";", "before": "s", "after": "n" },
+		{ "char": ":", "before": "s", "after": "n" },
 		{ "char": "“", "before": "n", "after": "s" },
 		{ "char": "”", "before": "s", "after": "n" },
 		{ "char": "‘", "before": "n", "after": "s" },
 		{ "char": "’", "before": "s", "after": "n" },
+		{ "char": "'", "before": "s", "after": "s" },
+		{ "char": "\"", "before": "s", "after": "s" },
 		{ "char": "!", "before": "s", "after": "n" },
+		{ "char": "?", "before": "s", "after": "n" },
 		{ "char": "@", "before": "o", "after": "o" },
 		{ "char": "#", "before": "u", "after": "u" },
 		{ "char": "$", "before": "l", "after": "l" },
@@ -611,12 +605,12 @@ letter-spacing by comparing the character's stroke types to the adjacent letters
 		{ "char": "♥", "entity": "&hearts;", "number": "&#9829;" },
 		{ "char": "♦", "entity": "&diams;", "number": "&#9830;" }
 	];
-	//const selectorsDefault = ["h1", "h2", "h3", "h4", "h5", "h6", "p"];
-	const selectorsDefault = ["h1", "h2"];
+	const selectorsDefault = ["h1", "h2", "h3", "h4", "h5", "h6", "p"];
+	//const selectorsDefault = [".kern-Para"];
 
 	//	KernBot
 	// ===========================================================================
-	let KernBot = function(input) {
+	const KernBot = function(input) {
 		// setup vars
 		let track = true,
 			selectors = selectorsDefault,
@@ -935,15 +929,10 @@ letter-spacing by comparing the character's stroke types to the adjacent letters
 				entityExists = this._getLegendData(injectElement.char, "entity", this.entities) || this._getLegendData(injectElement.char, "number", this.entities) || false,
 				charNode = new Node(context, currentChar, classIndex),
 				charNodePair = null;
-			
-			// ensure the loop is not checking for a previous entity
-			// then add current character to sequence array
-			if (previousEntity === null) {
-				sequenceOutput.push(charNode);
-			}
-			
-			// check for HTML element to inject into sequence
+			// there is an element to inject
 			if (injectElement) {
+				// inject element into sequence array
+				sequenceOutput.push(injectElement);
 				// if the previous char was an HTML entity
 				if (previousEntity) {
 					// update the previous char in char pair
@@ -951,9 +940,6 @@ letter-spacing by comparing the character's stroke types to the adjacent letters
 					// reset the previous entity and reset the loop index,
 					// will redo this loop but skip the previous entity
 					previousEntity = null; i--;
-				} else {
-					// inject element into sequence array
-					sequenceOutput.push(injectElement);
 				}
 				// check if element to inject is an &entity; or <tag>
 				if (injectElement.isEntity && entityExists) {
@@ -962,7 +948,8 @@ letter-spacing by comparing the character's stroke types to the adjacent letters
 					charPair = this._getLegendData(currentChar.char+entityExists.char, "pair", this.characterPairs);
 				}
 			}
-
+			// then add current character to sequence array
+			sequenceOutput.push(charNode);
 			// check for next character and create NodePair
 			if (nextChar && charPair) {
 				// char pair vars
@@ -987,10 +974,20 @@ letter-spacing by comparing the character's stroke types to the adjacent letters
 		let HTMLstring = "";
 		// loop through the sequence
 		for (let i = 0; i < sequence.length; i++) {
-			// add span to html string
-			HTMLstring += "<span class=\"" + "char-" + (i+1) + "\" style=\"letter-spacing:" + "-" + sequence[i].kerning + "px" + ";\">";
-			HTMLstring += sequence[i].char;
-			HTMLstring += "</span>";
+			// check this sequence item type, write correct HTML
+			switch (sequence[i].constructor.name) {
+				// element to inject
+				case "Element":
+					HTMLstring += sequence[i].char;
+					break;
+				// node
+				default:
+					// inject node into a span wrapper with kerning data
+					HTMLstring += "<span class=\"" + "char-" + (i+1) + "\" style=\"letter-spacing:" + "-" + sequence[i].kerning + "px" + ";\">";
+					HTMLstring += sequence[i].char;
+					HTMLstring += "</span>";
+					break;
+			}
 		}
 		// return string
 		return HTMLstring;
@@ -1025,10 +1022,8 @@ letter-spacing by comparing the character's stroke types to the adjacent letters
 		// loop through each nodePairSequence
 		for (let y = 0; y < nodePairSequence.length; y++) {
 			// track nodePair
-			this._trackNodePair(context, y+1, nodePairSequence[y]);
+			this._trackNode(context, y+1, nodePairSequence[y], true);
 		}
-		// log KernBot
-		console.log(this);
 		// return KernBot
 		return this;
 	}
@@ -1036,50 +1031,40 @@ letter-spacing by comparing the character's stroke types to the adjacent letters
 	 * Keeps track of which node have been kerned
 	 * @param {object} context – the HTML element which KernBot is acting on
 	 * @param (number) index - the first chars index in <span class="char-INDEX">
-	 * @param [array] sequence - an array of character objects
+	 * @param {object} node - the node to track
+	 * @param (boolean) isNodePair - whether the node to track is a nodePair
 	 * @return (number) 0 or >1 - (0 if updated Node), (nodes.length > 1 if added new Node)
 	 */
-	KernBot.prototype._trackNode = function(context, index, node) {
+	KernBot.prototype._trackNode = function(context, index, node, isNodePair = false) {
 		// vars
-		let checkNode = this._checkSameNodeExists(context, node);
+		let checkNode = null;
+		// check node or nodePair
+		if (!isNodePair) {
+			checkNode = this._returnSameNodeExists(context, node);
+		} else {
+			checkNode = this._returnSameNodePairExists(context, node);
+		}
 		// check node exists in this context
 		if (checkNode) {
 			// increase count of the this node
 			checkNode._increaseCount(1);
 			// add the string index of this new instance of the node
 			checkNode._addCharIndex(index);
-			// return 0
+			// return 0 length => updated existing node, did not add new node to array
 			return 0;
 		}
-		// add node to track
-		this.nodes.push(node);
-	}
-	/**
-	 * Keeps track of kerned node pairs in a context
-	 * @param {object} context – the HTML element which KernBot is acting on
-	 * @param (number) index - the first chars index in <span class="char-INDEX">
-	 * @param {object} nodePair - the NodePair to track
-	 * @return (number) 0 or >1 - (0 if updated Node), (nodes.length > 1 if added new Node)
-	 */
-	KernBot.prototype._trackNodePair = function(context, index, nodePair) {
-		// vars
-		let checkNode = this._checkSameNodePairExists(context, nodePair);
-		// check nodePair exists in this context
-		if (checkNode) {
-			// increase count of the this nodePair
-			checkNode._increaseCount(1);
-			// add the string index of this new instance of the nodePair
-			checkNode._addCharPairIndex(index, index+1);
-			// return 0
-			return 0;
+		if (!isNodePair) {
+			// add node to track, return length of nodes array
+			return this.nodes.push(node);
+		} else {
+			// add nodePair to track, return length of nodes array
+			return this.nodePairs.push(node);
 		}
-		// add nodePair to track
-		this.nodePairs.push(nodePair);
 	}
 	/**
 	 * Loops through the nodes and checks if the same node exists
 	 */
-	KernBot.prototype._checkSameNodeExists = function(context, node) {
+	KernBot.prototype._returnSameNodeExists = function(context, node) {
 		// setup vars
 		let checkChar = node.char.toString(),
 			checkContext = node.context,
@@ -1117,7 +1102,7 @@ letter-spacing by comparing the character's stroke types to the adjacent letters
 	/**
 	 * Loops through the nodePairs and checks if the same pair exists
 	 */
-	KernBot.prototype._checkSameNodePairExists = function(context, node) {
+	KernBot.prototype._returnSameNodePairExists = function(context, node) {
 		// setup vars
 		let checkPair = node.pair.toString(),
 			checkContext = node.context,
@@ -1198,11 +1183,12 @@ letter-spacing by comparing the character's stroke types to the adjacent letters
 
 	// KERNBOT IN GLOBAL SPACE
 	// ===========================================================================
-	// Initialize the KernBot object methods
+	// set KernBot.init prototype to KernBot's prototype
 	KernBot.init.prototype = KernBot.prototype;
 	// create "$KB" alias in the global object (shorthand)
 	global.KernBot = global.$KB = KernBot;
 	// return true if everything loaded properly
 	return true;
+
 // execute IIFE and pass dependencies
 } (window, undefined));

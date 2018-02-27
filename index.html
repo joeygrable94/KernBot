@@ -13,29 +13,39 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1.0"><!-- responsive -->
 	<meta name="robots" content="noindex"><!-- no SEO -->
 
-	<!-- css -->
+	<!-- css 
 	<link rel="stylesheet" type="text/css" href="./css/reset.css">
 	<link rel="stylesheet" type="text/css" href="./css/root.css">
 	<link rel="stylesheet" type="text/css" href="./css/typography.css">
 	<link rel="stylesheet" type="text/css" href="./css/forms.css">
 	<link rel="stylesheet" type="text/css" href="./css/tables.css">
 	<link rel="stylesheet" type="text/css" href="./css/buttons.css">
+	-->
+	<link rel="stylesheet" type="text/css" href="./css/gridinator.css">
 	<link rel="stylesheet" type="text/css" href="./css/stylesheet.css">
 
 </head>
 <body>
 
-	<button onclick="runKernBot()">Run KernBot</button>
-	<button onclick="analyzeKernBotSequences()">Analyze Kerning</button>
+	<div class="wrapper">
 
-	<h1 class="kern-bot">Hello &amp; <em>World</em>!</h1>
-	<h2 class="kern-bot">Try kerning a heading 2.4 aiai</h2>
-	<h3 id="kern-H3">Try kerning a heading 3.</h3>
-	<p class="kern-Para">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam ultrices diam quis ipsum vehicula scelerisque. Praesent cursus, velit ac bibendum molestie, quam ante cursus massa, non laoreet mauris neque vitae risus. Fusce imperdiet hendrerit libero, non lobortis massa posuere sed. Nulla ut dolor at elit vestibulum tincidunt. Etiam ac ante ligula. Mauris dapibus tempus sapien non posuere. Morbi ultrices ornare enim cursus dignissim. Sed vel urna a erat egestas tincidunt.</p>
-	<h4>h4 Here is a kerned h4 with no class or ID. h4</h4>
-	<p class="kern-Lorem">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam ultrices diam quis ipsum vehicula scelerisque. Praesent cursus, velit ac bibendum molestie, quam ante cursus massa, non laoreet mauris neque vitae risus. Fusce imperdiet hendrerit libero, non lobortis massa posuere sed. Nulla ut dolor at elit vestibulum tincidunt. Etiam ac ante ligula. Mauris dapibus tempus sapien non posuere. Morbi ultrices ornare enim cursus dignissim. Sed vel urna a erat egestas tincidunt.</p>
+		<h1 class="kern-bot">Hello World!<br>My name is <em>KernBot</em>.</h1>
+		<hr>
+		<h2 class="kern-bot">I like to take a string of text and turn it into a sequence with kerned letters.</h2>
+		<h3 class="kern-bot">I even have the capability to track the individual characters &amp; character pairs in each sequence.</h3>
+		<p class="kern-Para">Wanna learn how I work? <a href="#" onclick="runKernBot()">Run my Kern function</a>, and I'll walk you through my method.</p>
 
-	<div id="KernBotNodePairs"></div>
+		<div class="btn-group">
+			<button onclick="runKernBot()">Kern Some Text</button>
+			<button onclick="analyzeKernBotSequences()">Analyze The Kerning</button>
+		</div>
+
+		<h4>sample h4: Here is a kerned h4 with no class or ID.</h4>
+		<p class="kern-Lorem">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam ultrices diam quis ipsum vehicula scelerisque. Praesent cursus, velit ac bibendum molestie, quam ante cursus massa, non laoreet mauris neque vitae risus. Fusce imperdiet hendrerit libero, non lobortis massa posuere sed. Nulla ut dolor at elit vestibulum tincidunt. Etiam ac ante ligula. Mauris dapibus tempus sapien non posuere. Morbi ultrices ornare enim cursus dignissim. Sed vel urna a erat egestas tincidunt.</p>
+
+		<div id="KernBotNodePairs"></div>
+
+	</div>
 
 <script type="text/javascript" src="./src/KernBot.1.3.0.js"></script>
 <script type="text/javascript">
