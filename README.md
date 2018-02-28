@@ -1,6 +1,6 @@
 # KernBot
 
-[Working example of v1.3.X at](http://joeygrable.com/git/KernBot/)
+[Working example of v1.3.X](http://joeygrable.com/git/KernBot/)
 
 ## A javascript library that dynamically kerns characters based on their font size.
 
