@@ -5,22 +5,31 @@
 	padding: 2em;
 }
 
-#KernBotNodePairs {
-	margin-top: 2em;
-}
+.btn-group { margin-bottom: 2em; }
+
+#KernBotNodePairs { margin-top: 2em; }
+
+/* fallback */
 #KernBotNodePairs ul {
+	width: 100%;
+	display: flex;
+	flex-direction: row;
+	flex-wrap: wrap;
 	list-style-type: none;
-	display: grid;
-	grid-template-columns: repeat(4, minmax(200px, 1fr));
-	align-items: end;
 	margin: 0;
 }
-
 #KernBotNodePairs ul li {
+	width: 25%;
 	padding: 1em;
 	margin-bottom: 4em;
 }
 
-.btn-group {
-	margin-bottom: 2em;
+/* if grid */
+@supports (display: grid) {
+	#KernBotNodePairs ul {
+		display: grid;
+		grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+		align-items: end;
+	}
+	#KernBotNodePairs ul li { width: auto; }
 }
