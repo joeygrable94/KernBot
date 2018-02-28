@@ -87,7 +87,8 @@ letter-spacing by comparing the character's stroke types to the adjacent letters
 	}
 	// HTML <tags> and &entities;
 	class Element {
-		constructor(elm, string, stripped, start, end, injectAt, isEntity) {
+		constructor(context, elm, string, stripped, start, end, injectAt, isEntity) {
+			this.context = context;
 			// the characters & length of the element
 			this.char = elm;
 			this.length = elm.length;
@@ -97,12 +98,18 @@ letter-spacing by comparing the character's stroke types to the adjacent letters
 			this.stripped = stripped;
 			this.strippedLength = stripped.length;
 			// the start & end index of the element in the original string
-			this.stringIndex = [start, end];
+			this.indexes = [[start, end]];
 			// where to inject the element in the stripped string
 			this.injectAt = injectAt;
 			// entities are rendered, <tags> are not
 			this.isEntity = isEntity || false;
+			// num of occurrences
+			this.count = 0;
 		}
+		// increase the instance count
+		_increaseCount(val=1) { return this.count += val; }
+		// add index to instance
+		_addCharIndex(index) { return this.indexes.push([index, index+this.length]); }
 	}
 	// nodes
 	class Node {
@@ -908,7 +915,7 @@ letter-spacing by comparing the character's stroke types to the adjacent letters
 			if (lengthOfAllElm < 0) { lengthOfAllElm *= -1 }
 			// create new element calculate where to inject it
 			let injectAt = elmStart-lengthOfAllElm,
-				newElement = new Element(element, string, stripped, elmStart, elmEnd, injectAt, isEntity);
+				newElement = new Element(context, element, string, stripped, elmStart, elmEnd, injectAt, isEntity);
 			// store the element in an array for now
 			elements.push(newElement);
 			// update length of all elements to splice if multiple elements
@@ -1039,10 +1046,10 @@ letter-spacing by comparing the character's stroke types to the adjacent letters
 		// vars
 		let checkNode = null;
 		// check node or nodePair
-		if (!isNodePair) {
-			checkNode = this._returnSameNodeExists(context, node);
-		} else {
+		if (isNodePair) {
 			checkNode = this._returnSameNodePairExists(context, node);
+		} else {
+			checkNode = this._returnSameNodeExists(context, node);
 		}
 		// check node exists in this context
 		if (checkNode) {

@@ -7,22 +7,49 @@
 
 .btn-group { margin-bottom: 2em; }
 
+a {
+	color: black;
+	text-decoration: underline;
+}
+a:hover { font-style: italic; }
+ul {
+	margin: 0;
+	list-style-type: none;
+}
+a.kernbot {
+	color: black;
+	text-decoration: none;
+	font-weight: 200;
+	font-style: normal;
+	-webkit-transition: all .25s ease;
+	        transition: all .25s ease;
+}
+a.kernbot:hover {
+	font-style: italic;
+	-webkit-transition: all .25s ease;
+	        transition: all .25s ease;
+}
+
 #KernBotNodePairs { margin-top: 2em; }
 
-/* fallback */
+/* mobile first */
 #KernBotNodePairs ul {
-	width: 100%;
 	display: flex;
 	flex-direction: row;
 	flex-wrap: wrap;
-	list-style-type: none;
-	margin: 0;
+	width: 100%;
 }
 #KernBotNodePairs ul li {
-	width: 25%;
 	padding: 1em;
 	margin-bottom: 4em;
+	width: 100%;
 }
+@media screen and (min-width: 500px) { #KernBotNodePairs ul li { width: 50%; } }
+@media screen and (min-width: 850px) { #KernBotNodePairs ul li { width: 33%; } }
+@media screen and (min-width: 1028px) { #KernBotNodePairs ul li { width: 25%; } }
+@media screen and (min-width: 1260px) { #KernBotNodePairs ul li { width: 20%; } }
+@media screen and (min-width: 1440px) { #KernBotNodePairs ul li { width: 16.66%; } }
+@media screen and (min-width: 1800px) { #KernBotNodePairs ul li { width: 14.28%; } }
 
 /* if grid */
 @supports (display: grid) {
