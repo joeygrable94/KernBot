@@ -50,7 +50,10 @@ Stroke Type  | Name             | Data Code  | Example Characters
 For Example, the character "A" is made of three strokes: an up slant stroke on the left side,
 a down slant stroke on the right and a cross bar.
 ```
-left stroke:  /  A  \  :right stroke
+left:  /  -  \  :right
+        / - \
+         /-\
+          A
 ```
 
 We only need to analyze the left and right side of the character to determine the stroke shape
