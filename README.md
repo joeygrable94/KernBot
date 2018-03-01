@@ -91,12 +91,28 @@ const characters = [
 ];
 ```
 
+### Strokes are Weighted
+Each stroke shape is assigned a different weight. The stroke weight is the key value
+used to calculate the kerning value of any individual character in a sequence.
+```
+// stroke types and their associated weight
+const strokes = [
+	new Stroke("l", 1),		// vertical stroke
+	new Stroke("o", 2),		// round stroke
+	new Stroke("u", 4),		// up slant stroke
+	new Stroke("d", 4),		// down slant stroke
+	new Stroke("s", 3),		// special case
+	new Stroke("n", 0)		// none case
+];
+```
+
 ### Characters have Neighboring Characters
 As acknoledged before each character has a stroke shape on both its left and right sides.
 In a word characters directly next to eachother have different combonations of their strokes
 depending on the characters and their stroke shape on the adjacent side as the neighboring character.
 
-The kerning is calucalted relative to the combination of stroke types between two characters.
+### Stroke Combinations Between Characters
+Kerning is Dependent on the Stroke Combination Between Two Characters.
 
 My initial sketch for this concept is linked in my images folder, and I think best visualizes
 how a string is broken into character pairs and then the pairs stroke type is analysed, then
