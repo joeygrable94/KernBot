@@ -111,7 +111,7 @@ As acknoledged before each character has a stroke shape on both its left and rig
 In a word characters directly next to eachother have different combonations of their strokes
 depending on the characters and their stroke shape on the adjacent side as the neighboring character.
 
-### Stroke Combinations Between Characters
+### Stroke Combinations Between Characters is Key
 Kerning is Dependent on the Stroke Combination Between Two Characters.
 
 My initial sketch for this concept is linked in my images folder, and I think best visualizes
