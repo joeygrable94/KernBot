@@ -115,8 +115,7 @@ depending on the characters and their stroke shape on the adjacent side as the n
 Kerning is Dependent on the Stroke Combination Between Two Characters.
 
 My initial sketch for this concept is linked in my images folder, and I think best visualizes
-how a string is broken into character pairs and then the pairs stroke type is analysed, then
-the kerning and letter-space between that character pair is calculated and appened to the character node.
+how a string is broken into character pairs and then the stroke shape pairs are analyzed.
 
 [KernBot Stroke Types Concept](./images/KernBot-concept.jpg)
 ```
@@ -186,4 +185,7 @@ const strokeDataReference = [
 ];
 ```
 
+### Calculating Kerning Relative to the Element Font Size
+Finally, the kerning and letter-space between that character pair is calculated
+and appened to the character node.
 
