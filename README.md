@@ -1,9 +1,7 @@
 # KernBot
-
 [Working example of v1.3.X](http://joeygrable.com/git/KernBot/)
 
 ## A javascript library that dynamically kerns characters based on their font size.
-
 KernBot uses calligraphic methods to categorize letters by the shape of their strokes.
 It then uses the stroke information of each letter in a sentence, compairs the letter
 and its stroke shape to the adjacent characters in the sentence, then calculates the 
@@ -18,8 +16,6 @@ kerning and letter-spacing based on the weight stroke types.
 * introduce a Perceptron to train the KernBot to adjust the stroke weights depending on the font & context
 
 ## How It Works:
-
-
 ```
 // load KernBot with defaults
 let TestKernBot = new KernBot();
@@ -35,11 +31,9 @@ TestKernBot.kern();
 ```
 
 ### Characters are made of Strokes:
-
 In calligraphy each letter is constructed of various strokes of the pen, each with a definite
 but unique shape. It is important to note that each character has a stroke shape on both
 its left and right sides. The left and the right stroke shapes are not necessarily the same.
-
 ```
 -------------+------------------+------------+-------------------------------
 Stroke Type  | Name             | Data Code  | Example Characters
@@ -53,9 +47,48 @@ Stroke Type  | Name             | Data Code  | Example Characters
 -------------+------------------+------------+-------------------------------
 ```
 
+For Example, the character "A" is made of three strokes: an up slant stroke on the left side,
+a down slant stroke on the right and a cross bar.
+```
+left stroke:  /  A  \  :right stroke
+```
+
+We only need to analyze the left and right side of the character to determine the stroke shape
+and calculate the kerning. So we ignore the cross bar stroke, or any unique strokes and special cases
+Instead, the stroke shapes of every character is aproximated for both their left and right sides.
+
+KernBot catagorizes characters like so:
+```
+const characters = [
+	{ "char": "a", "before": "o", "after": "l" },
+	{ "char": "b", "before": "l", "after": "o" },
+	{ "char": "c", "before": "o", "after": "l" },
+	... lowercase
+	{ "char": "y", "before": "l", "after": "u" },
+	{ "char": "z", "before": "l", "after": "l" },
+	{ "char": "A", "before": "u", "after": "d" },
+	{ "char": "B", "before": "l", "after": "o" },
+	{ "char": "C", "before": "o", "after": "l" },
+	... CAPITALS
+	{ "char": "Y", "before": "d", "after": "u" },
+	{ "char": "Z", "before": "l", "after": "l" },
+	... numbers
+	{ "char": "0", "before": "o", "after": "o" },
+	{ "char": "1", "before": "l", "after": "l" },
+	{ "char": "2", "before": "l", "after": "o" },
+	{ "char": "3", "before": "l", "after": "o" },
+	... special characters
+	{ "char": " ", "before": "n", "after": "n" },
+	{ "char": ".", "before": "s", "after": "n" },
+	{ "char": ",", "before": "s", "after": "n" },
+	{ "char": "$", "before": "l", "after": "l" },
+	{ "char": "&", "before": "o", "after": "s" },
+	{ "char": "(", "before": "n", "after": "s" },
+	{ "char": ")", "before": "s", "after": "n" },
+];
+```
 
 ### Characters have Neighboring Characters
-
 As acknoledged before each character has a stroke shape on both its left and right sides.
 In a word characters directly next to eachother have different combonations of their strokes
 depending on the characters and their stroke shape on the adjacent side as the neighboring character.
@@ -67,7 +100,6 @@ how a string is broken into character pairs and then the pairs stroke type is an
 the kerning and letter-space between that character pair is calculated and appened to the character node.
 
 [KernBot Stroke Types Concept](./images/KernBot-concept.jpg)
-
 ```
 ------+-----------------------+-------------------------
 Code  | Stroke Combinations:  | Example Character Pair
@@ -93,7 +125,6 @@ Code  | Stroke Combinations:  | Example Character Pair
  do   |  slantDown-curve      |  Ac
 ------+-----------------------+-------------------------
 (does not include 's' special shapes and 'n' non-shapes)
-
 
 // in KernBot stroke combo weights is codified like so
 const strokeDataReference = [
