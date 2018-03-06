@@ -87,35 +87,24 @@ letter-spacing by comparing the character's stroke types to the adjacent letters
 	}
 	// HTML <tags> and &entities;
 	class Element {
-		constructor(context, elm, string, stripped, start, end, injectAt, isEntity) {
+		constructor(context, string, elm, start, end, isEntity) {
 			this.context = context;
+			this.string = string;
 			// the characters & length of the element
 			this.char = elm;
 			this.length = elm.length;
-			// a string that contains elements
-			this.string = string;
-			// a string stripped of all elements
-			this.stripped = stripped;
-			this.strippedLength = stripped.length;
 			// the start & end index of the element in the original string
-			this.indexes = [[start, end]];
-			// where to inject the element in the stripped string
-			this.injectAt = injectAt;
+			this.indexes = [start, end];
 			// entities are rendered, <tags> are not
 			this.isEntity = isEntity || false;
-			// num of occurrences
-			this.count = 0;
 		}
-		// increase the instance count
-		_increaseCount(val=1) { return this.count += val; }
-		// add index to instance
-		_addCharIndex(index) { return this.indexes.push([index, index+this.length]); }
 	}
 	// nodes
 	class Node {
-		constructor(context, character, index) {
+		constructor(context, character, classIndex) {
 			this.context = context;
-			this.indexes = [index];
+			this.class = "char-"+classIndex;
+			this.indexes = [classIndex];
 			this.char = character.char;
 			this.character = character;
 			this.kerning = 0;
@@ -174,7 +163,7 @@ letter-spacing by comparing the character's stroke types to the adjacent letters
 		constructor(context, string, HTML, sequence) {
 			this.context = context;
 			this.string = string;
-			this.HTML = HTML;
+			this.innerHTML = HTML;
 			this.sequence = sequence;
 		}
 	}
@@ -613,27 +602,39 @@ letter-spacing by comparing the character's stroke types to the adjacent letters
 		{ "char": "♦", "entity": "&diams;", "number": "&#9830;" }
 	];
 	//const selectorsDefault = ["h1", "h2", "h3", "h4", "h5", "h6", "p"];
-	const selectorsDefault = ["h3"];
+	const selectorsDefault = ["h1"];
 
 	//	KernBot
 	// ===========================================================================
 	const KernBot = function(input) {
 		// setup vars
-		let track = true,
+		let self = this,
+			track = true,
 			selectors = selectorsDefault,
+			output = document.createElement("div"),
 			options = {};
-		// set options
-		if (undefined !== input) {
-			if (undefined !== input.track) {
-				track = input.track;
-			} else if (undefined !== input.selectors) {
-				selectors = selectorsDefault;
-			}
+		
+		// add output id to easily find
+		output.setAttribute("id", "KernBotOutput");
+		// add created KernBotOutput to end of DOM
+		document.body.appendChild(output);
+
+		// set user options
+		// VALIDATION?
+		if (input !== undefined) {
+			// if input track, set the options to input value
+			if (input.track !== undefined) { track = input.track; }
+			// if input selectors, set the options to input value
+			if (input.selectors !== undefined) { selectors = input.selectors; }
+			// if input outputID, set the options to input value
+			if (input.outputID !== undefined) { output = self._getDocumentElement(input.outputID)[0]; }
 		}
+
 		// set default options
 		options = {
 			"track": track,
-			"selectors": selectors
+			"selectors": selectors,
+			"output": output
 		};
 		// return a new KernBot.init object that initializes the options
 		return new KernBot.init(options, characters, strokes, entities);
@@ -663,6 +664,7 @@ letter-spacing by comparing the character's stroke types to the adjacent letters
 		// operations
 		self.track = options.track;
 		self.selectors = options.selectors;
+		self.output = options.output;
 		self.HTMLelements = self._gatherElements(self.selectors);
 
 		// data tracking
@@ -689,20 +691,26 @@ letter-spacing by comparing the character's stroke types to the adjacent letters
 		let self = this;
 		// loop through each HTML element
 		for (let e = 0; e < self.HTMLelements.length; e++) {
+
 			// check element already been kerned, break out of this loop
 			if (self._checkElementKerned(self.HTMLelements[e])) { break; }
+
 			// gather sequence vars
 			let element = self.HTMLelements[e],
 				string = element.innerHTML,
 				// an array: 0 = node sequnce, 1 = nodePairs sequence
 				sequenceData = self._stringToSequence(element, string),
 				HTMLstring = "";
+
 			// prepare HTML string to write to DOM
 			HTMLstring = self._prepareHTMLString(sequenceData[0]);
+
 			// update the elements HTML with the span injected kerning data
 			self._updateElementHTML(element, HTMLstring);
+
 			// add this sequence to the array of sequences KernBot acts on
 			self.sequences.push(new Sequence(element, string, HTMLstring, sequenceData[0]));
+
 			// update KernBot tracking
 			if (self.track) {
 				self._update(element, sequenceData);
@@ -826,6 +834,7 @@ letter-spacing by comparing the character's stroke types to the adjacent letters
 		if (null !== output) {
 			return output;
 		} else {
+			// return false
 			return false;
 		}
 	}
@@ -839,36 +848,53 @@ letter-spacing by comparing the character's stroke types to the adjacent letters
 		let output = [];
 		// loop through selectors
 		for (let i = 0; i < selectors.length; i++) {
-			// switch
-			switch (selectors[i].substring(0,1)) {
-				// IDs
-				case "#":
-					// get ID elements
-					let byID = document.getElementById(selectors[i].substring(1));
-					// add HTMLelement
-					output.push(byID);
-					break;
-				// Classes
-				case ".":
-					// get class elements
-					let byClass = document.getElementsByClassName(selectors[i].substring(1));
-					// loop through individual elements
-					for (let x = 0; x < byClass.length; x++) {
-						// add HTMLelement
-						output.push(byClass[x]);
-					}
-					break;
-				// HTML tag
-				default:
-					// get tag elements
-					let byTag = document.getElementsByTagName(selectors[i].toUpperCase());
-					// loop through individual elements
-					for (let x = 0; x < byTag.length; x++) {
-						// add HTMLelement
-						output.push(byTag[x]);
-					}
-					break;
+			// gather elements
+			let elements = this._getDocumentElement(selectors[i]);
+			// loop through the elements, add to output
+			for (let x = 0; x < elements.length; x++) {
+				output.push(elements[x]);
 			}
+		}
+		// return output
+		return output;
+	}
+	/**
+	 * Returns an array of elements with the input selector
+	 * @param "string" selector - a string of the selector to find elements for (#id, .class, tag)
+	 * @return [array] output - an array of HTML elements
+	 */
+	KernBot.prototype._getDocumentElement = function(selector) {
+		// return vars
+		let output = [];
+		// switch
+		switch (selector.substring(0,1)) {
+			// IDs
+			case "#":
+				// get ID elements
+				let byID = document.getElementById(selector.substring(1));
+				// add HTMLelement
+				output.push(byID);
+				break;
+			// Classes
+			case ".":
+				// get class elements
+				let byClass = document.getElementsByClassName(selector.substring(1));
+				// loop through individual elements
+				for (let x = 0; x < byClass.length; x++) {
+					// add HTMLelement
+					output.push(byClass[x]);
+				}
+				break;
+			// HTML tag
+			default:
+				// get tag elements
+				let byTag = document.getElementsByTagName(selector.toUpperCase());
+				// loop through individual elements
+				for (let x = 0; x < byTag.length; x++) {
+					// add HTMLelement
+					output.push(byTag[x]);
+				}
+				break;
 		}
 		// return output
 		return output;
@@ -885,6 +911,20 @@ letter-spacing by comparing the character's stroke types to the adjacent letters
 			return (this.sequences[i].context === element ? true : false);
 		}
 	}
+
+
+	KernBot.prototype._checkInjectElementIndex = function(index, elements) {
+		// loop through the elements
+		for (let i = 0; i < elements.length; i++) {
+			// check if current index is between the indexes of an element to inject
+			if (elements[i].indexes[0] <= index && index < elements[i].indexes[1]) {
+				return elements[i];
+			}
+		}
+		// return false
+		return false;
+	}
+
 	/**
 	 * Outputs a sequence of characters and tags
 	 * @param {object} context - the HTML context (element) the string exists at
@@ -896,37 +936,97 @@ letter-spacing by comparing the character's stroke types to the adjacent letters
 		let sequenceOutput = [],
 			nodePairsOutput = [],
 			elements = [];
+
 		// parser vars
-		let elmRegEx = new RegExp("(<(.|\n)*?>|&(.|\n)*?;)", "g"),
+		let tagRegEx = new RegExp("<(.|\n)*?>", "g"),
 			entityRegEx = new RegExp("&(.|\n)*?;", "g"),
 			// <tags> and &entities;
-			containsElments = elmRegEx.test(string),
-			elms = string.match(elmRegEx) || false,
-			lengthOfAllElm = 0,
+			elms = [],
+			tags = string.match(tagRegEx) || false,
+			entities = string.match(entityRegEx) || false,
 			// string info
-			stringLength = string.length,
-			stripped = string.replace(elmRegEx,""),
-			strippedLength = stripped.length;
+			parsedEntities = string.replace(entityRegEx, ""),
+			strippedString = parsedEntities.replace(tagRegEx,"");
+
+		// gather elements to re-inject into sequence
+		if (tags && entities) { elms = tags.concat(entities); }
+
+		console.log(tags);
+		console.log(entities);
+		console.log(elms);
+		console.log(parsedEntities);
+		console.log(strippedString);
+		//console.log(string.length - strippedString.length);
+		console.log("=========================");
+		//return false;
+
 		// loop through tags
 		for (let i = 0; elms && i < elms.length; i++) {
 			// splice vars
-			let elmStart = string.indexOf(elms[i]),
-				elmEnd = elmStart + elms[i].length,
-				element = string.slice(elmStart, elmEnd),
-				elmLength = element.length,
+			let start = string.indexOf(elms[i]),
+				end = start + elms[i].length,
+				element = string.slice(start, end),
 				isEntity = entityRegEx.test(element) || false;
-			// entities take up one character length when HTML is rendered
-			if (isEntity) { lengthOfAllElm -= 1; }
-			// ensure the length is a positive value
-			if (lengthOfAllElm < 0) { lengthOfAllElm *= -1 }
-			// create new element calculate where to inject it
-			let injectAt = elmStart-lengthOfAllElm,
-				newElement = new Element(context, element, string, stripped, elmStart, elmEnd, injectAt, isEntity);
+
+			//console.log("inject at: " + start);
+			//console.log(element);
+			//console.log(element.length);
+			//console.log("-----");
+
 			// store the element in an array for now
-			elements.push(newElement);
-			// update length of all elements to splice if multiple elements
-			lengthOfAllElm += elmLength;
+			elements.push(new Element(context, string, element, start, end, isEntity));
 		}
+
+		// loop through the string
+		for (let i = 0; i < string.length; i++) {
+			// vars
+			let injectElementPrevious = this._checkInjectElementIndex(i-1, elements),
+				injectElementNow = this._checkInjectElementIndex(i, elements),
+				injectElementNext = this._checkInjectElementIndex(i+1, elements),
+				alreadyInjected = false,
+				previousChar = this._getLegendData(string[i-1], "char", this.characters) || false,
+				currentChar = this._getLegendData(string[i], "char", this.characters) || false,
+				nextChar = this._getLegendData(string[i+1], "char", this.characters) || false,
+				charPair = this._getLegendData(currentChar.char+nextChar.char, "pair", this.characterPairs) || false,
+				elementNode = null,
+				charNode = null,
+				charNodePair = null;
+
+			
+			console.log(i + ": " + string[i]);
+
+			// check element
+			if (injectElementNow) {
+				// current string item is part of an injected element
+				console.log("inject: (now)" + injectElementNow.char);
+			}
+			if (injectElementNext) {
+				// the next string item is a part of an injected element
+				console.log("inject: (next)" + injectElementNext.char);
+			}
+			if (injectElementPrevious) {
+				// the previous string item is a part of an injected element
+				console.log("inject: (previous)" + injectElementPrevious.char);
+			}
+
+			// default, there is no element to inject,
+			// this loop item is a character in the string
+			//console.log("inject: " + injectElementNow);
+
+			console.log("-----");
+			console.log("previous:");
+			console.log(previousChar);
+			console.log("current:");
+			console.log(currentChar);
+			console.log("next:");
+			console.log(nextChar);
+			console.log("pair:");
+			console.log(charPair);
+			console.log("==========");
+		}
+
+		return false;
+
 		// loop vars
 		let previousEntity = null;
 		// loop through the string
@@ -942,8 +1042,10 @@ letter-spacing by comparing the character's stroke types to the adjacent letters
 				entityExists = this._getLegendData(injectElement.char, "entity", this.entities) || this._getLegendData(injectElement.char, "number", this.entities) || false,
 				charNode = new Node(context, currentChar, classIndex),
 				charNodePair = null;
-			// first add the  current character to sequence array
-			sequenceOutput.push(charNode);
+
+			// add the current character to sequence array, if the element to inject is an entity
+			if (injectElement.isEntity) { sequenceOutput.push(charNode); }
+
 			// then look to see if there is an element to inject into the sequence
 			if (injectElement) {
 				// inject element into sequence array
@@ -962,6 +1064,10 @@ letter-spacing by comparing the character's stroke types to the adjacent letters
 					charPair = this._getLegendData(currentChar.char+entityExists.char, "pair", this.characterPairs);
 				}
 			}
+
+			// add the current character to sequence array, if the element to inject is a tag
+			if (!injectElement.isEntity) { sequenceOutput.push(charNode); }
+
 			// check for next character and create NodePair
 			if (nextChar && charPair) {
 				// char pair vars
@@ -990,12 +1096,27 @@ letter-spacing by comparing the character's stroke types to the adjacent letters
 			switch (sequence[i].constructor.name) {
 				// element to inject
 				case "Element":
-					HTMLstring += sequence[i].char;
+					// element vars
+					let elms = this._toNodes(sequence[i].char),
+						elm = elms[0],
+						elmRegEx = new RegExp("(<(.|\n)*?>|&(.|\n)*?;)", "g"),
+						startTag = false,
+						elmString = sequence[i].char;
+					// if is HTML element
+					if (this._isElement(elm)) {
+						// add element class
+						elm.classList.add("element");
+						// get the start tag of the element
+						elmString = elm.outerHTML.match(elmRegEx)[0]
+					}
+					// add element to HTML
+					HTMLstring += elmString;
 					break;
 				// node
 				default:
 					// inject node into a span wrapper with kerning data
-					HTMLstring += "<span class=\"" + "char-" + (i+1) + "\" style=\"letter-spacing:" + "-" + sequence[i].kerning + "px" + ";\">";
+					HTMLstring += "<span class=\"" + sequence[i].class + "\"";
+					HTMLstring += "style=\"letter-spacing:" + "-" + sequence[i].kerning + "px" + ";\">";
 					HTMLstring += sequence[i].char;
 					HTMLstring += "</span>";
 					break;
@@ -1003,6 +1124,34 @@ letter-spacing by comparing the character's stroke types to the adjacent letters
 		}
 		// return string
 		return HTMLstring;
+	}
+	/**
+	 * Returns true if it is a DOM node
+	 * @param "string" html - an html string to convert to an html element
+	 * @return (boolean) T/F
+	 */
+	 KernBot.prototype._isNode = function(o) { return (
+			typeof Node === "object" ?
+			o instanceof Node :
+			o && typeof o === "object" && typeof o.nodeType === "number" && typeof o.nodeName==="string"
+	)}
+	/**
+	 * Returns true if it is a DOM element
+	 * @param {object} o - an html element to check
+	 * @return (boolean) T/F
+	 */
+	KernBot.prototype._isElement = function(o) { return (
+			typeof HTMLElement === "object" ?
+			o instanceof HTMLElement :
+			o && typeof o === "object" && o !== null && o.nodeType === 1 && typeof o.nodeName === "string"
+	)}
+	/**
+	 * Updates an elements innerHTML to its kerned sequence data
+	 * @param "string" html - an html string to convert to an html element
+	 * @return {object} HTML nodes array or false
+	 */
+	KernBot.prototype._toNodes = function(html) {
+		return new DOMParser().parseFromString(html,'text/html').body.childNodes || false;
 	}
 	/**
 	 * Updates an elements innerHTML to its kerned sequence data
@@ -1156,17 +1305,88 @@ letter-spacing by comparing the character's stroke types to the adjacent letters
 		return false;
 	}
 
-	// KERNBOT TRAINING
+	// KERNBOT ANALYTICS
 	// ===========================================================================
+	/**
+	 * Outputs a sequence's HTML
+	 */
+	KernBot.prototype.outputSequenceHTML = function(seqID) {
+		// output vars
+		let sequence = this.sequences[seqID],
+			nodes = sequence.sequence,
+			HTMLstring = "",
+			context = sequence.context.tagName,
+			hasClass = sequence.context.getAttribute("class") || false,
+			hasId = sequence.context.getAttribute("id") || false;
+		// loop through the sequence nodes
+		for (let i = 0; i < nodes.length; i++) {
+			HTMLstring += "&lt;span class=\""+nodes[i].class+"\"&gt;";
+			HTMLstring += nodes[i].char;
+			HTMLstring += "&lt;/span&gt;";
+			HTMLstring += "<br/>";
+		}
+		// write to output
+		return this.output.innerHTML = HTMLstring;
+	}
+	/**
+	 * Outputs a sequence's CSS
+	 */
+	KernBot.prototype.outputSequenceCSS = function(seqID) {
+		// output vars
+		let sequence = this.sequences[seqID],
+			nodes = sequence.sequence,
+			HTMLstring = "",
+			context = sequence.context.tagName,
+			hasClass = sequence.context.getAttribute("class") || false,
+			hasId = sequence.context.getAttribute("id") || false;
+		// loop through the sequence nodes
+		for (let i = 0; i < nodes.length; i++) {
+			// check the type
+			switch (nodes[i].constructor.name) {
+				// injected element
+				case "Element":
+					// tag vars
+					let tagNode = this._toNodes(nodes[i].char)[0] || false,
+						tag = false;
+					// set tag
+					if (tagNode) { tag = tagNode.tagName.toLowerCase(); }
+					// if tag
+					if (tag) {
+						// context
+						HTMLstring += context.toLowerCase();
+						// tag element
+						HTMLstring += " "+tag+".element"+" {";
+						HTMLstring += " letter-spacing: 0px; ";
+						HTMLstring += "}";
+						// next line
+						HTMLstring += "<br/>";
+					}
+					break;
+				// node by default
+				default:
+					// context
+					HTMLstring += context.toLowerCase();
+					if (hasClass) { HTMLstring += "."+hasClass; }
+					else if (hasId) { HTMLstring += "#"+hasId; }
+					HTMLstring += " span."+nodes[i].class+" {";
+					HTMLstring += " "+"letter-spacing: -"+nodes[i].kerning+"px;"+" ";
+					HTMLstring += "}";
+					// next line
+					HTMLstring += "<br/>";
+					break;
+			}
+		}
+		// write to output
+		return this.output.innerHTML = HTMLstring;
+	}
 	/**
 	 * Loops through the nodePairs and write them to the input ID element
 	 * @param {object} trainerID - the ID of the HTML element to write output to
 	 * @return {action} write HTML string to the innerHTML of the input ID element
 	 */
-	KernBot.prototype.writeNodePairsToHTML = function(trainerID) {
+	KernBot.prototype.writeNodePairsToHTML = function() {
 		// vars
-		let trainerHTML = document.getElementById(trainerID.substring(1)),
-			HTMLstring = "<ul>";
+		let HTMLstring = "<ul>";
 		// loop through counted NodePairs
 		for (let i = 0; i < this.nodePairs.length; i++) {
 			// vars
@@ -1200,7 +1420,8 @@ letter-spacing by comparing the character's stroke types to the adjacent letters
 			HTMLstring += "</li>";
 		}
 		HTMLstring += "</ul>";
-		return trainerHTML.innerHTML = HTMLstring;
+		// write to output
+		return this.output.innerHTML = HTMLstring;
 	}
 
 	// KERNBOT IN GLOBAL SPACE

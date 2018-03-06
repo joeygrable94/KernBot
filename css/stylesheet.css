@@ -31,33 +31,37 @@ a.kernbot:hover {
 	        transition: all .25s ease;
 }
 
-#KernBotNodePairs { margin-top: 2em; }
+pre hr {
+	border-top: 2px solid white;
+}
+
+#KernBotOutput { margin-top: 2em; }
 
 /* mobile first */
-#KernBotNodePairs ul {
+#KernBotOutput ul {
 	display: flex;
 	flex-direction: row;
 	flex-wrap: wrap;
 	width: 100%;
 }
-#KernBotNodePairs ul li {
+#KernBotOutput ul li {
 	padding: 1em;
 	margin-bottom: 4em;
 	width: 100%;
 }
-@media screen and (min-width: 500px) { #KernBotNodePairs ul li { width: 50%; } }
-@media screen and (min-width: 850px) { #KernBotNodePairs ul li { width: 33%; } }
-@media screen and (min-width: 1028px) { #KernBotNodePairs ul li { width: 25%; } }
-@media screen and (min-width: 1260px) { #KernBotNodePairs ul li { width: 20%; } }
-@media screen and (min-width: 1440px) { #KernBotNodePairs ul li { width: 16.66%; } }
-@media screen and (min-width: 1800px) { #KernBotNodePairs ul li { width: 14.28%; } }
+@media screen and (min-width: 500px) { #KernBotOutput ul li { width: 50%; } }
+@media screen and (min-width: 850px) { #KernBotOutput ul li { width: 33%; } }
+@media screen and (min-width: 1028px) { #KernBotOutput ul li { width: 25%; } }
+@media screen and (min-width: 1260px) { #KernBotOutput ul li { width: 20%; } }
+@media screen and (min-width: 1440px) { #KernBotOutput ul li { width: 16.66%; } }
+@media screen and (min-width: 1800px) { #KernBotOutput ul li { width: 14.28%; } }
 
 /* if grid */
 @supports (display: grid) {
-	#KernBotNodePairs ul {
+	#KernBotOutput ul {
 		display: grid;
 		grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
 		align-items: end;
 	}
-	#KernBotNodePairs ul li { width: auto; }
+	#KernBotOutput ul li { width: auto; }
 }

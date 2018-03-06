@@ -806,7 +806,7 @@ button, input.btn {
   vertical-align: middle;
   user-select: none;
   padding: 0.4444444444 1.3333333333 !important;
-  border-radius: 4px;
+  /*border-radius: 4px;*/
   color: #000000;
   background: #ffffff; }
   button:disabled, button.disabled, input.btn:disabled, input.btn.disabled {
