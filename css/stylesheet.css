@@ -31,6 +31,9 @@ a.kernbot:hover {
 	        transition: all .25s ease;
 }
 
+pre {
+	overflow-x: scroll;
+}
 pre hr {
 	border-top: 2px solid white;
 }

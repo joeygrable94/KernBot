@@ -437,30 +437,51 @@ textarea {
   font: inherit;
   /* 2 */ }
 
-@font-face {
-  font-family: "akzg-bold";
-  src: url("../gridinator/fonts/AkzidenzGrotesk-Bold.otf") format("opentype");
-  font-style: bold;
-  font-weight: bold;
-  text-rendering: auto; }
-@font-face {
-  font-family: "akzg-light";
-  src: url("../gridinator/fonts/AkzidenzGrotesk-Light.otf") format("opentype");
-  font-style: light;
-  font-weight: light;
-  text-rendering: auto; }
-@font-face {
-  font-family: "akzg-light-italic";
-  src: url("../gridinator/fonts/AkzidenzGrotesk-LightItalic.otf") format("opentype");
-  font-style: italic;
-  font-weight: light;
-  text-rendering: auto; }
-@font-face {
-  font-family: "akzg-super";
-  src: url("../gridinator/fonts/AkzidenzGrotesk-Super.otf") format("opentype");
-  font-style: bold;
-  font-weight: bolder;
-  text-rendering: auto; }
+/*
+@include _font-face(
+	$font-family: 'akzg-bold',
+	$font-path: '../scss/fonts/',
+	$font-file-name: 'AkzidenzGrotesk-Bold',
+	$font-style: bold,
+	$font-weight: bold,
+	$font-svg-id: null,
+	$text-rendering: auto,
+	$font-formats: (otf: opentype)
+);
+
+@include _font-face(
+	$font-family: 'akzg-light',
+	$font-path: '../scss/fonts/',
+	$font-file-name: 'AkzidenzGrotesk-Light',
+	$font-style: light,
+	$font-weight: light,
+	$font-svg-id: null,
+	$text-rendering: auto,
+	$font-formats: (otf: opentype)
+);
+
+@include _font-face(
+	$font-family: 'akzg-light-italic',
+	$font-path: '../scss/fonts/',
+	$font-file-name: 'AkzidenzGrotesk-LightItalic',
+	$font-style: italic,
+	$font-weight: light,
+	$font-svg-id: null,
+	$text-rendering: auto,
+	$font-formats: (otf: opentype)
+);
+
+@include _font-face(
+	$font-family: 'akzg-super',
+	$font-path: '../scss/fonts/',
+	$font-file-name: 'AkzidenzGrotesk-Super',
+	$font-style: bold,
+	$font-weight: bolder,
+	$font-svg-id: null,
+	$text-rendering: auto,
+	$font-formats: (otf: opentype)
+);
+*/
 html {
   font-size: 112.5%;
   -webkit-text-size-adjust: 100%;
@@ -544,9 +565,7 @@ h2, .h2 {
 h3, .h3 {
   margin-bottom: 0.2962962963em;
   font-size: 1.5em;
-  line-height: 1.4814814815; 
-  font-weight: 200; 
-  font-style: italic; }
+  line-height: 1.4814814815; }
   @media (min-width: 56.25em) {
     h3, .h3 {
       margin-bottom: 0.1975308642em;
@@ -806,7 +825,7 @@ button, input.btn {
   vertical-align: middle;
   user-select: none;
   padding: 0.4444444444 1.3333333333 !important;
-  /*border-radius: 4px;*/
+  border-radius: 4px;
   color: #000000;
   background: #ffffff; }
   button:disabled, button.disabled, input.btn:disabled, input.btn.disabled {

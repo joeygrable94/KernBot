@@ -24,12 +24,14 @@ letter-spacing by comparing the character's stroke types to the adjacent letters
 	// ===========================================================================
 	// characters
 	class Character {
-		constructor(char, before, after) {
+		constructor(char, before, after, entity, number) {
 			this.char = char;
 			this.strokes = {
 				"before": before,
 				"after": after
 			}
+			this.entity = entity || false,
+			this.number = number || false,
 			this.kerning;
 			this.letterSpace;
 		}
@@ -99,14 +101,28 @@ letter-spacing by comparing the character's stroke types to the adjacent letters
 			this.isEntity = isEntity || false;
 		}
 	}
-	// nodes
-	class Node {
-		constructor(context, character, classIndex) {
+	// tag injected in a sequence
+	class Tag {
+		constructor(context, node, classIndex) {
 			this.context = context;
 			this.class = "char-"+classIndex;
 			this.indexes = [classIndex];
-			this.char = character.char;
-			this.character = character;
+			this.char = node.char;
+			this.data = node;
+			this.count = 0;
+			this._increaseCount(1);
+		}
+		// increase the instance count
+		_increaseCount(val=1) { return this.count += val; }
+	}
+	// nodes
+	class Node {
+		constructor(context, node, classIndex) {
+			this.context = context;
+			this.class = "char-"+classIndex;
+			this.indexes = [classIndex];
+			this.char = node.char;
+			this.data = node;
 			this.kerning = 0;
 			this.count = 0;
 			this._increaseCount(1);
@@ -261,6 +277,338 @@ letter-spacing by comparing the character's stroke types to the adjacent letters
 		{ "char": "}", "before": "s", "after": "n" },
 		{ "char": "/", "before": "s", "after": "s" }
 	];
+	const entities = [
+		{ "char": " ", "before": "s", "after": "s", "entity": null, "number": "&#32;", },
+		{ "char": "!", "before": "s", "after": "s", "entity": null, "number": "&#33;", },
+		{ "char": "\"", "before": "s", "after": "s", "entity": null, "number": "&#34;", },
+		{ "char": "#", "before": "s", "after": "s", "entity": null, "number": "&#35;", },
+		{ "char": "$", "before": "s", "after": "s", "entity": null, "number": "&#36;", },
+		{ "char": "%", "before": "s", "after": "s", "entity": null, "number": "&#37;", },
+		{ "char": "&", "before": "s", "after": "s", "entity": "&amp;", "number": "&#38;", },
+		{ "char": "'", "before": "s", "after": "s", "entity": null, "number": "&#39;", },
+		{ "char": "(", "before": "s", "after": "s", "entity": null, "number": "&#40;", },
+		{ "char": ")", "before": "s", "after": "s", "entity": null, "number": "&#41;", },
+		{ "char": "*", "before": "s", "after": "s", "entity": null, "number": "&#42;", },
+		{ "char": "+", "before": "s", "after": "s", "entity": null, "number": "&#43;", },
+		{ "char": ",", "before": "s", "after": "s", "entity": null, "number": "&#44;", },
+		{ "char": "-", "before": "s", "after": "s", "entity": null, "number": "&#45;", },
+		{ "char": ".", "before": "s", "after": "s", "entity": null, "number": "&#46;", },
+		{ "char": "/", "before": "s", "after": "s", "entity": null, "number": "&#47;", },
+		{ "char": "0", "before": "s", "after": "s", "entity": null, "number": "&#48;", },
+		{ "char": "1", "before": "s", "after": "s", "entity": null, "number": "&#49;", },
+		{ "char": "2", "before": "s", "after": "s", "entity": null, "number": "&#50;", },
+		{ "char": "3", "before": "s", "after": "s", "entity": null, "number": "&#51;", },
+		{ "char": "4", "before": "s", "after": "s", "entity": null, "number": "&#52;", },
+		{ "char": "5", "before": "s", "after": "s", "entity": null, "number": "&#53;", },
+		{ "char": "6", "before": "s", "after": "s", "entity": null, "number": "&#54;", },
+		{ "char": "7", "before": "s", "after": "s", "entity": null, "number": "&#55;", },
+		{ "char": "8", "before": "s", "after": "s", "entity": null, "number": "&#56;", },
+		{ "char": "9", "before": "s", "after": "s", "entity": null, "number": "&#57;", },
+		{ "char": ":", "before": "s", "after": "s", "entity": null, "number": "&#58;", },
+		{ "char": ";", "before": "s", "after": "s", "entity": null, "number": "&#59;", },
+		{ "char": "<", "before": "s", "after": "s", "entity": "&lt;", "number": "&#60;", },
+		{ "char": "=", "before": "s", "after": "s", "entity": null, "number": "&#61;", },
+		{ "char": ">", "before": "s", "after": "s", "entity": "&gt;", "number": "&#62;", },
+		{ "char": "?", "before": "s", "after": "s", "entity": null, "number": "&#63;", },
+		{ "char": "@", "before": "s", "after": "s", "entity": null, "number": "&#64;", },
+		{ "char": "A", "before": "s", "after": "s", "entity": null, "number": "&#65;", },
+		{ "char": "B", "before": "s", "after": "s", "entity": null, "number": "&#66;", },
+		{ "char": "C", "before": "s", "after": "s", "entity": null, "number": "&#67;", },
+		{ "char": "D", "before": "s", "after": "s", "entity": null, "number": "&#68;", },
+		{ "char": "E", "before": "s", "after": "s", "entity": null, "number": "&#69;", },
+		{ "char": "F", "before": "s", "after": "s", "entity": null, "number": "&#70;", },
+		{ "char": "G", "before": "s", "after": "s", "entity": null, "number": "&#71;", },
+		{ "char": "H", "before": "s", "after": "s", "entity": null, "number": "&#72;", },
+		{ "char": "I", "before": "s", "after": "s", "entity": null, "number": "&#73;", },
+		{ "char": "J", "before": "s", "after": "s", "entity": null, "number": "&#74;", },
+		{ "char": "K", "before": "s", "after": "s", "entity": null, "number": "&#75;", },
+		{ "char": "L", "before": "s", "after": "s", "entity": null, "number": "&#76;", },
+		{ "char": "M", "before": "s", "after": "s", "entity": null, "number": "&#77;", },
+		{ "char": "N", "before": "s", "after": "s", "entity": null, "number": "&#78;", },
+		{ "char": "O", "before": "s", "after": "s", "entity": null, "number": "&#79;", },
+		{ "char": "P", "before": "s", "after": "s", "entity": null, "number": "&#80;", },
+		{ "char": "Q", "before": "s", "after": "s", "entity": null, "number": "&#81;", },
+		{ "char": "R", "before": "s", "after": "s", "entity": null, "number": "&#82;", },
+		{ "char": "S", "before": "s", "after": "s", "entity": null, "number": "&#83;", },
+		{ "char": "T", "before": "s", "after": "s", "entity": null, "number": "&#84;", },
+		{ "char": "U", "before": "s", "after": "s", "entity": null, "number": "&#85;", },
+		{ "char": "V", "before": "s", "after": "s", "entity": null, "number": "&#86;", },
+		{ "char": "W", "before": "s", "after": "s", "entity": null, "number": "&#87;", },
+		{ "char": "X", "before": "s", "after": "s", "entity": null, "number": "&#88;", },
+		{ "char": "Y", "before": "s", "after": "s", "entity": null, "number": "&#89;", },
+		{ "char": "Z", "before": "s", "after": "s", "entity": null, "number": "&#90;", },
+		{ "char": "[", "before": "s", "after": "s", "entity": null, "number": "&#91;", },
+		{ "char": "\\", "before": "s", "after": "s", "entity": null, "number": "&#92;", },
+		{ "char": "]", "before": "s", "after": "s", "entity": null, "number": "&#93;", },
+		{ "char": "^", "before": "s", "after": "s", "entity": null, "number": "&#94;", },
+		{ "char": "_", "before": "s", "after": "s", "entity": null, "number": "&#95;", },
+		{ "char": "`", "before": "s", "after": "s", "entity": null, "number": "&#96;", },
+		{ "char": "a", "before": "s", "after": "s", "entity": null, "number": "&#97;", },
+		{ "char": "b", "before": "s", "after": "s", "entity": null, "number": "&#98;", },
+		{ "char": "c", "before": "s", "after": "s", "entity": null, "number": "&#99;", },
+		{ "char": "d", "before": "s", "after": "s", "entity": null, "number": "&#100;", },
+		{ "char": "e", "before": "s", "after": "s", "entity": null, "number": "&#101;", },
+		{ "char": "f", "before": "s", "after": "s", "entity": null, "number": "&#102;", },
+		{ "char": "g", "before": "s", "after": "s", "entity": null, "number": "&#103;", },
+		{ "char": "h", "before": "s", "after": "s", "entity": null, "number": "&#104;", },
+		{ "char": "i", "before": "s", "after": "s", "entity": null, "number": "&#105;", },
+		{ "char": "j", "before": "s", "after": "s", "entity": null, "number": "&#106;", },
+		{ "char": "k", "before": "s", "after": "s", "entity": null, "number": "&#107;", },
+		{ "char": "l", "before": "s", "after": "s", "entity": null, "number": "&#108;", },
+		{ "char": "m", "before": "s", "after": "s", "entity": null, "number": "&#109;", },
+		{ "char": "n", "before": "s", "after": "s", "entity": null, "number": "&#110;", },
+		{ "char": "o", "before": "s", "after": "s", "entity": null, "number": "&#111;", },
+		{ "char": "p", "before": "s", "after": "s", "entity": null, "number": "&#112;", },
+		{ "char": "q", "before": "s", "after": "s", "entity": null, "number": "&#113;", },
+		{ "char": "r", "before": "s", "after": "s", "entity": null, "number": "&#114;", },
+		{ "char": "s", "before": "s", "after": "s", "entity": null, "number": "&#115;", },
+		{ "char": "t", "before": "s", "after": "s", "entity": null, "number": "&#116;", },
+		{ "char": "u", "before": "s", "after": "s", "entity": null, "number": "&#117;", },
+		{ "char": "v", "before": "s", "after": "s", "entity": null, "number": "&#118;", },
+		{ "char": "w", "before": "s", "after": "s", "entity": null, "number": "&#119;", },
+		{ "char": "x", "before": "s", "after": "s", "entity": null, "number": "&#120;", },
+		{ "char": "y", "before": "s", "after": "s", "entity": null, "number": "&#121;", },
+		{ "char": "z", "before": "s", "after": "s", "entity": null, "number": "&#122;", },
+		{ "char": "{", "before": "s", "after": "s", "entity": null, "number": "&#123;", },
+		{ "char": "|", "before": "s", "after": "s", "entity": null, "number": "&#124;", },
+		{ "char": "}", "before": "s", "after": "s", "entity": null, "number": "&#125;", },
+		{ "char": "~", "before": "s", "after": "s", "entity": null, "number": "&#126;", },
+		{ "char": "À", "before": "s", "after": "s", "entity": "&Agrave;", "number": "&#192;", },
+		{ "char": "Á", "before": "s", "after": "s", "entity": "&Aacute;", "number": "&#193;", },
+		{ "char": "Â", "before": "s", "after": "s", "entity": "&Acirc;", "number": "&#194;", },
+		{ "char": "Ã", "before": "s", "after": "s", "entity": "&Atilde;", "number": "&#195;", },
+		{ "char": "Ä", "before": "s", "after": "s", "entity": "&Auml;", "number": "&#196;", },
+		{ "char": "Å", "before": "s", "after": "s", "entity": "&Aring;", "number": "&#197;", },
+		{ "char": "Æ", "before": "s", "after": "s", "entity": "&AElig;", "number": "&#198;", },
+		{ "char": "Ç", "before": "s", "after": "s", "entity": "&Ccedil;", "number": "&#199;", },
+		{ "char": "È", "before": "s", "after": "s", "entity": "&Egrave;", "number": "&#200;", },
+		{ "char": "É", "before": "s", "after": "s", "entity": "&Eacute;", "number": "&#201;", },
+		{ "char": "Ê", "before": "s", "after": "s", "entity": "&Ecirc;", "number": "&#202;", },
+		{ "char": "Ë", "before": "s", "after": "s", "entity": "&Euml;", "number": "&#203;", },
+		{ "char": "Ì", "before": "s", "after": "s", "entity": "&Igrave;", "number": "&#204;", },
+		{ "char": "Í", "before": "s", "after": "s", "entity": "&Iacute;", "number": "&#205;", },
+		{ "char": "Î", "before": "s", "after": "s", "entity": "&Icirc;", "number": "&#206;", },
+		{ "char": "Ï", "before": "s", "after": "s", "entity": "&Iuml;", "number": "&#207;", },
+		{ "char": "Ð", "before": "s", "after": "s", "entity": "&ETH;", "number": "&#208;", },
+		{ "char": "Ñ", "before": "s", "after": "s", "entity": "&Ntilde;", "number": "&#209;", },
+		{ "char": "Ò", "before": "s", "after": "s", "entity": "&Ograve;", "number": "&#210;", },
+		{ "char": "Ó", "before": "s", "after": "s", "entity": "&Oacute;", "number": "&#211;", },
+		{ "char": "Ô", "before": "s", "after": "s", "entity": "&Ocirc;", "number": "&#212;", },
+		{ "char": "Õ", "before": "s", "after": "s", "entity": "&Otilde;", "number": "&#213;", },
+		{ "char": "Ö", "before": "s", "after": "s", "entity": "&Ouml;", "number": "&#214;", },
+		{ "char": "Ø", "before": "s", "after": "s", "entity": "&Oslash;", "number": "&#216;", },
+		{ "char": "Ù", "before": "s", "after": "s", "entity": "&Ugrave;", "number": "&#217;", },
+		{ "char": "Ú", "before": "s", "after": "s", "entity": "&Uacute;", "number": "&#218;", },
+		{ "char": "Û", "before": "s", "after": "s", "entity": "&Ucirc;", "number": "&#219;", },
+		{ "char": "Ü", "before": "s", "after": "s", "entity": "&Uuml;", "number": "&#220;", },
+		{ "char": "Ý", "before": "s", "after": "s", "entity": "&Yacute;", "number": "&#221;", },
+		{ "char": "Þ", "before": "s", "after": "s", "entity": "&THORN;", "number": "&#222;", },
+		{ "char": "ß", "before": "s", "after": "s", "entity": "&szlig;", "number": "&#223;", },
+		{ "char": "à", "before": "s", "after": "s", "entity": "&agrave;", "number": "&#224;", },
+		{ "char": "á", "before": "s", "after": "s", "entity": "&aacute;", "number": "&#225;", },
+		{ "char": "â", "before": "s", "after": "s", "entity": "&acirc;", "number": "&#226;", },
+		{ "char": "ã", "before": "s", "after": "s", "entity": "&atilde;", "number": "&#227;", },
+		{ "char": "ä", "before": "s", "after": "s", "entity": "&auml;", "number": "&#228;", },
+		{ "char": "å", "before": "s", "after": "s", "entity": "&aring;", "number": "&#229;", },
+		{ "char": "æ", "before": "s", "after": "s", "entity": "&aelig;", "number": "&#230;", },
+		{ "char": "ç", "before": "s", "after": "s", "entity": "&ccedil;", "number": "&#231;", },
+		{ "char": "è", "before": "s", "after": "s", "entity": "&egrave;", "number": "&#232;", },
+		{ "char": "é", "before": "s", "after": "s", "entity": "&eacute;", "number": "&#233;", },
+		{ "char": "ê", "before": "s", "after": "s", "entity": "&ecirc;", "number": "&#234;", },
+		{ "char": "ë", "before": "s", "after": "s", "entity": "&euml;", "number": "&#235;", },
+		{ "char": "ì", "before": "s", "after": "s", "entity": "&igrave;", "number": "&#236;", },
+		{ "char": "í", "before": "s", "after": "s", "entity": "&iacute;", "number": "&#237;", },
+		{ "char": "î", "before": "s", "after": "s", "entity": "&icirc;", "number": "&#238;", },
+		{ "char": "ï", "before": "s", "after": "s", "entity": "&iuml;", "number": "&#239;", },
+		{ "char": "ð", "before": "s", "after": "s", "entity": "&eth;", "number": "&#240;", },
+		{ "char": "ñ", "before": "s", "after": "s", "entity": "&ntilde;", "number": "&#241;", },
+		{ "char": "ò", "before": "s", "after": "s", "entity": "&ograve;", "number": "&#242;", },
+		{ "char": "ó", "before": "s", "after": "s", "entity": "&oacute;", "number": "&#243;", },
+		{ "char": "ô", "before": "s", "after": "s", "entity": "&ocirc;", "number": "&#244;", },
+		{ "char": "õ", "before": "s", "after": "s", "entity": "&otilde;", "number": "&#245;", },
+		{ "char": "ö", "before": "s", "after": "s", "entity": "&ouml;", "number": "&#246;", },
+		{ "char": "ø", "before": "s", "after": "s", "entity": "&oslash;", "number": "&#248;", },
+		{ "char": "ù", "before": "s", "after": "s", "entity": "&ugrave;", "number": "&#249;", },
+		{ "char": "ú", "before": "s", "after": "s", "entity": "&uacute;", "number": "&#250;", },
+		{ "char": "û", "before": "s", "after": "s", "entity": "&ucirc;", "number": "&#251;", },
+		{ "char": "ü", "before": "s", "after": "s", "entity": "&uuml;", "number": "&#252;", },
+		{ "char": "ý", "before": "s", "after": "s", "entity": "&yacute;", "number": "&#253;", },
+		{ "char": "þ", "before": "s", "after": "s", "entity": "&thorn;", "number": "&#254;", },
+		{ "char": "ÿ", "before": "s", "after": "s", "entity": "&yuml;", "number": "&#255;", },
+		{ "char": " ", "before": "s", "after": "s", "entity": "&nbsp;", "number": "&#160;", },
+		{ "char": "¡", "before": "s", "after": "s", "entity": "&iexcl;", "number": "&#161;", },
+		{ "char": "¢", "before": "s", "after": "s", "entity": "&cent;", "number": "&#162;", },
+		{ "char": "£", "before": "s", "after": "s", "entity": "&pound;", "number": "&#163;", },
+		{ "char": "¤", "before": "s", "after": "s", "entity": "&curren;", "number": "&#164;", },
+		{ "char": "¥", "before": "s", "after": "s", "entity": "&yen;", "number": "&#165;", },
+		{ "char": "¦", "before": "s", "after": "s", "entity": "&brvbar;", "number": "&#166;", },
+		{ "char": "§", "before": "s", "after": "s", "entity": "&sect;", "number": "&#167;", },
+		{ "char": "¨", "before": "s", "after": "s", "entity": "&uml;", "number": "&#168;", },
+		{ "char": "©", "before": "s", "after": "s", "entity": "&copy;", "number": "&#169;", },
+		{ "char": "ª", "before": "s", "after": "s", "entity": "&ordf;", "number": "&#170;", },
+		{ "char": "«", "before": "s", "after": "s", "entity": "&laquo;", "number": "&#171;", },
+		{ "char": "¬", "before": "s", "after": "s", "entity": "&not;", "number": "&#172;", },
+		{ "char": " ", "before": "s", "after": "s", "entity": "&shy;", "number": "&#173;", },
+		{ "char": "®", "before": "s", "after": "s", "entity": "&reg;", "number": "&#174;", },
+		{ "char": "¯", "before": "s", "after": "s", "entity": "&macr;", "number": "&#175;", },
+		{ "char": "°", "before": "s", "after": "s", "entity": "&deg;", "number": "&#176;", },
+		{ "char": "±", "before": "s", "after": "s", "entity": "&plusmn;", "number": "&#177;", },
+		{ "char": "²", "before": "s", "after": "s", "entity": "&sup2;", "number": "&#178;", },
+		{ "char": "³", "before": "s", "after": "s", "entity": "&sup3;", "number": "&#179;", },
+		{ "char": "´", "before": "s", "after": "s", "entity": "&acute;", "number": "&#180;", },
+		{ "char": "µ", "before": "s", "after": "s", "entity": "&micro;", "number": "&#181;", },
+		{ "char": "¶", "before": "s", "after": "s", "entity": "&para;", "number": "&#182;", },
+		{ "char": "¸", "before": "s", "after": "s", "entity": "&cedil;", "number": "&#184;", },
+		{ "char": "¹", "before": "s", "after": "s", "entity": "&sup1;", "number": "&#185;", },
+		{ "char": "º", "before": "s", "after": "s", "entity": "&ordm;", "number": "&#186;", },
+		{ "char": "»", "before": "s", "after": "s", "entity": "&raquo;", "number": "&#187;", },
+		{ "char": "¼", "before": "s", "after": "s", "entity": "&frac14;", "number": "&#188;", },
+		{ "char": "½", "before": "s", "after": "s", "entity": "&frac12;", "number": "&#189;", },
+		{ "char": "¾", "before": "s", "after": "s", "entity": "&frac34;", "number": "&#190;", },
+		{ "char": "¿", "before": "s", "after": "s", "entity": "&iquest;", "number": "&#191;", },
+		{ "char": "×", "before": "s", "after": "s", "entity": "&times;", "number": "&#215;", },
+		{ "char": "÷", "before": "s", "after": "s", "entity": "&divide;", "number": "&#247;", },
+		{ "char": "∀", "before": "s", "after": "s", "entity": "&forall;", "number": "&#8704;", },
+		{ "char": "∂", "before": "s", "after": "s", "entity": "&part;", "number": "&#8706;", },
+		{ "char": "∃", "before": "s", "after": "s", "entity": "&exist;", "number": "&#8707;", },
+		{ "char": "∅", "before": "s", "after": "s", "entity": "&empty;", "number": "&#8709;", },
+		{ "char": "∇", "before": "s", "after": "s", "entity": "&nabla;", "number": "&#8711;", },
+		{ "char": "∈", "before": "s", "after": "s", "entity": "&isin;", "number": "&#8712;", },
+		{ "char": "∉", "before": "s", "after": "s", "entity": "&notin;", "number": "&#8713;", },
+		{ "char": "∋", "before": "s", "after": "s", "entity": "&ni;", "number": "&#8715;", },
+		{ "char": "∏", "before": "s", "after": "s", "entity": "&prod;", "number": "&#8719;", },
+		{ "char": "∑", "before": "s", "after": "s", "entity": "&sum;", "number": "&#8721;", },
+		{ "char": "−", "before": "s", "after": "s", "entity": "&minus;", "number": "&#8722;", },
+		{ "char": "∗", "before": "s", "after": "s", "entity": "&lowast;", "number": "&#8727;", },
+		{ "char": "√", "before": "s", "after": "s", "entity": "&radic;", "number": "&#8730;", },
+		{ "char": "∝", "before": "s", "after": "s", "entity": "&prop;", "number": "&#8733;", },
+		{ "char": "∞", "before": "s", "after": "s", "entity": "&infin;", "number": "&#8734;", },
+		{ "char": "∠", "before": "s", "after": "s", "entity": "&ang;", "number": "&#8736;", },
+		{ "char": "∧", "before": "s", "after": "s", "entity": "&and;", "number": "&#8743;", },
+		{ "char": "∨", "before": "s", "after": "s", "entity": "&or;", "number": "&#8744;", },
+		{ "char": "∩", "before": "s", "after": "s", "entity": "&cap;", "number": "&#8745;", },
+		{ "char": "∪", "before": "s", "after": "s", "entity": "&cup;", "number": "&#8746;", },
+		{ "char": "∫", "before": "s", "after": "s", "entity": "&int;", "number": "&#8747;", },
+		{ "char": "∴", "before": "s", "after": "s", "entity": "&there4;", "number": "&#8756;", },
+		{ "char": "∼", "before": "s", "after": "s", "entity": "&sim;", "number": "&#8764;", },
+		{ "char": "≅", "before": "s", "after": "s", "entity": "&cong;", "number": "&#8773;", },
+		{ "char": "≈", "before": "s", "after": "s", "entity": "&asymp;", "number": "&#8776;", },
+		{ "char": "≠", "before": "s", "after": "s", "entity": "&ne;", "number": "&#8800;", },
+		{ "char": "≡", "before": "s", "after": "s", "entity": "&equiv;", "number": "&#8801;", },
+		{ "char": "≤", "before": "s", "after": "s", "entity": "&le;", "number": "&#8804;", },
+		{ "char": "≥", "before": "s", "after": "s", "entity": "&ge;", "number": "&#8805;", },
+		{ "char": "⊂", "before": "s", "after": "s", "entity": "&sub;", "number": "&#8834;", },
+		{ "char": "⊃", "before": "s", "after": "s", "entity": "&sup;", "number": "&#8835;", },
+		{ "char": "⊄", "before": "s", "after": "s", "entity": "&nsub;", "number": "&#8836;", },
+		{ "char": "⊆", "before": "s", "after": "s", "entity": "&sube;", "number": "&#8838;", },
+		{ "char": "⊇", "before": "s", "after": "s", "entity": "&supe;", "number": "&#8839;", },
+		{ "char": "⊕", "before": "s", "after": "s", "entity": "&oplus;", "number": "&#8853;", },
+		{ "char": "⊗", "before": "s", "after": "s", "entity": "&otimes;", "number": "&#8855;", },
+		{ "char": "⊥", "before": "s", "after": "s", "entity": "&perp;", "number": "&#8869;", },
+		{ "char": "⋅", "before": "s", "after": "s", "entity": "&sdot;", "number": "&#8901;", },
+		{ "char": "Α", "before": "s", "after": "s", "entity": "&Alpha;", "number": "&#913;", },
+		{ "char": "Β", "before": "s", "after": "s", "entity": "&Beta;", "number": "&#914;", },
+		{ "char": "Γ", "before": "s", "after": "s", "entity": "&Gamma;", "number": "&#915;", },
+		{ "char": "Δ", "before": "s", "after": "s", "entity": "&Delta;", "number": "&#916;", },
+		{ "char": "Ε", "before": "s", "after": "s", "entity": "&Epsilon;", "number": "&#917;", },
+		{ "char": "Ζ", "before": "s", "after": "s", "entity": "&Zeta;", "number": "&#918;", },
+		{ "char": "Η", "before": "s", "after": "s", "entity": "&Eta;", "number": "&#919;", },
+		{ "char": "Θ", "before": "s", "after": "s", "entity": "&Theta;", "number": "&#920;", },
+		{ "char": "Ι", "before": "s", "after": "s", "entity": "&Iota;", "number": "&#921;", },
+		{ "char": "Κ", "before": "s", "after": "s", "entity": "&Kappa;", "number": "&#922;", },
+		{ "char": "Λ", "before": "s", "after": "s", "entity": "&Lambda;", "number": "&#923;", },
+		{ "char": "Μ", "before": "s", "after": "s", "entity": "&Mu;", "number": "&#924;", },
+		{ "char": "Ν", "before": "s", "after": "s", "entity": "&Nu;", "number": "&#925;", },
+		{ "char": "Ξ", "before": "s", "after": "s", "entity": "&Xi;", "number": "&#926;", },
+		{ "char": "Ο", "before": "s", "after": "s", "entity": "&Omicron;", "number": "&#927;", },
+		{ "char": "Π", "before": "s", "after": "s", "entity": "&Pi;", "number": "&#928;", },
+		{ "char": "Ρ", "before": "s", "after": "s", "entity": "&Rho;", "number": "&#929;", },
+		{ "char": "Σ", "before": "s", "after": "s", "entity": "&Sigma;", "number": "&#931;", },
+		{ "char": "Τ", "before": "s", "after": "s", "entity": "&Tau;", "number": "&#932;", },
+		{ "char": "Υ", "before": "s", "after": "s", "entity": "&Upsilon;", "number": "&#933;", },
+		{ "char": "Φ", "before": "s", "after": "s", "entity": "&Phi;", "number": "&#934;", },
+		{ "char": "Χ", "before": "s", "after": "s", "entity": "&Chi;", "number": "&#935;", },
+		{ "char": "Ψ", "before": "s", "after": "s", "entity": "&Psi;", "number": "&#936;", },
+		{ "char": "Ω", "before": "s", "after": "s", "entity": "&Omega;", "number": "&#937;", },
+		{ "char": "α", "before": "s", "after": "s", "entity": "&alpha;", "number": "&#945;", },
+		{ "char": "β", "before": "s", "after": "s", "entity": "&beta;", "number": "&#946;", },
+		{ "char": "γ", "before": "s", "after": "s", "entity": "&gamma;", "number": "&#947;", },
+		{ "char": "δ", "before": "s", "after": "s", "entity": "&delta;", "number": "&#948;", },
+		{ "char": "ε", "before": "s", "after": "s", "entity": "&epsilon;", "number": "&#949;", },
+		{ "char": "ζ", "before": "s", "after": "s", "entity": "&zeta;", "number": "&#950;", },
+		{ "char": "η", "before": "s", "after": "s", "entity": "&eta;", "number": "&#951;", },
+		{ "char": "θ", "before": "s", "after": "s", "entity": "&theta;", "number": "&#952;", },
+		{ "char": "ι", "before": "s", "after": "s", "entity": "&iota;", "number": "&#953;", },
+		{ "char": "κ", "before": "s", "after": "s", "entity": "&kappa;", "number": "&#954;", },
+		{ "char": "λ", "before": "s", "after": "s", "entity": "&lambda;", "number": "&#955;", },
+		{ "char": "μ", "before": "s", "after": "s", "entity": "&mu;", "number": "&#956;", },
+		{ "char": "ν", "before": "s", "after": "s", "entity": "&nu;", "number": "&#957;", },
+		{ "char": "ξ", "before": "s", "after": "s", "entity": "&xi;", "number": "&#958;", },
+		{ "char": "ο", "before": "s", "after": "s", "entity": "&omicron;", "number": "&#959;", },
+		{ "char": "π", "before": "s", "after": "s", "entity": "&pi;", "number": "&#960;", },
+		{ "char": "ρ", "before": "s", "after": "s", "entity": "&rho;", "number": "&#961;", },
+		{ "char": "ς", "before": "s", "after": "s", "entity": "&sigmaf;", "number": "&#962;", },
+		{ "char": "σ", "before": "s", "after": "s", "entity": "&sigma;", "number": "&#963;", },
+		{ "char": "τ", "before": "s", "after": "s", "entity": "&tau;", "number": "&#964;", },
+		{ "char": "υ", "before": "s", "after": "s", "entity": "&upsilon;", "number": "&#965;", },
+		{ "char": "φ", "before": "s", "after": "s", "entity": "&phi;", "number": "&#966;", },
+		{ "char": "χ", "before": "s", "after": "s", "entity": "&chi;", "number": "&#967;", },
+		{ "char": "ψ", "before": "s", "after": "s", "entity": "&psi;", "number": "&#968;", },
+		{ "char": "ω", "before": "s", "after": "s", "entity": "&omega;", "number": "&#969;", },
+		{ "char": "ϑ", "before": "s", "after": "s", "entity": "&thetasym;", "number": "&#977;", },
+		{ "char": "ϒ", "before": "s", "after": "s", "entity": "&upsih;", "number": "&#978;", },
+		{ "char": "ϖ", "before": "s", "after": "s", "entity": "&piv;", "number": "&#982;", },
+		{ "char": "Œ", "before": "s", "after": "s", "entity": "&OElig;", "number": "&#338;", },
+		{ "char": "œ", "before": "s", "after": "s", "entity": "&oelig;", "number": "&#339;", },
+		{ "char": "Š", "before": "s", "after": "s", "entity": "&Scaron;", "number": "&#352;", },
+		{ "char": "š", "before": "s", "after": "s", "entity": "&scaron;", "number": "&#353;", },
+		{ "char": "Ÿ", "before": "s", "after": "s", "entity": "&Yuml;", "number": "&#376;", },
+		{ "char": "ƒ", "before": "s", "after": "s", "entity": "&fnof;", "number": "&#402;", },
+		{ "char": "ˆ", "before": "s", "after": "s", "entity": "&circ;", "number": "&#710;", },
+		{ "char": "˜", "before": "s", "after": "s", "entity": "&tilde;", "number": "&#732;", },
+		{ "char": " ", "before": "s", "after": "s", "entity": "&ensp;", "number": "&#8194;", },
+		{ "char": " ", "before": "s", "after": "s", "entity": "&emsp;", "number": "&#8195;", },
+		{ "char": "", "before": "s", "after": "s", "entity": "&thinsp;", "number": "&#8201;", },
+		{ "char": "", "before": "s", "after": "s", "entity": "&zwnj;", "number": "&#8204;", },
+		{ "char": "", "before": "s", "after": "s", "entity": "&zwj;", "number": "&#8205;", },
+		{ "char": "", "before": "s", "after": "s", "entity": "&lrm;", "number": "&#8206;", },
+		{ "char": "", "before": "s", "after": "s", "entity": "&rlm;", "number": "&#8207;", },
+		{ "char": "–", "before": "s", "after": "s", "entity": "&ndash;", "number": "&#8211;", },
+		{ "char": "—", "before": "s", "after": "s", "entity": "&mdash;", "number": "&#8212;", },
+		{ "char": "‘", "before": "s", "after": "s", "entity": "&lsquo;", "number": "&#8216;", },
+		{ "char": "’", "before": "s", "after": "s", "entity": "&rsquo;", "number": "&#8217;", },
+		{ "char": "‚", "before": "s", "after": "s", "entity": "&sbquo;", "number": "&#8218;", },
+		{ "char": "“", "before": "s", "after": "s", "entity": "&ldquo;", "number": "&#8220;", },
+		{ "char": "”", "before": "s", "after": "s", "entity": "&rdquo;", "number": "&#8221;", },
+		{ "char": "„", "before": "s", "after": "s", "entity": "&bdquo;", "number": "&#8222;", },
+		{ "char": "†", "before": "s", "after": "s", "entity": "&dagger;", "number": "&#8224;", },
+		{ "char": "‡", "before": "s", "after": "s", "entity": "&Dagger;", "number": "&#8225;", },
+		{ "char": "•", "before": "s", "after": "s", "entity": "&bull;", "number": "&#8226;", },
+		{ "char": "…", "before": "s", "after": "s", "entity": "&hellip;", "number": "&#8230;", },
+		{ "char": "‰", "before": "s", "after": "s", "entity": "&permil;", "number": "&#8240;", },
+		{ "char": "′", "before": "s", "after": "s", "entity": "&prime;", "number": "&#8242;", },
+		{ "char": "″", "before": "s", "after": "s", "entity": "&Prime;", "number": "&#8243;", },
+		{ "char": "‹", "before": "s", "after": "s", "entity": "&lsaquo;", "number": "&#8249;", },
+		{ "char": "›", "before": "s", "after": "s", "entity": "&rsaquo;", "number": "&#8250;", },
+		{ "char": "‾", "before": "s", "after": "s", "entity": "&oline;", "number": "&#8254;", },
+		{ "char": "€", "before": "s", "after": "s", "entity": "&euro;", "number": "&#8364;", },
+		{ "char": "™", "before": "s", "after": "s", "entity": "&trade;", "number": "&#8482;", },
+		{ "char": "←", "before": "s", "after": "s", "entity": "&larr;", "number": "&#8592;", },
+		{ "char": "↑", "before": "s", "after": "s", "entity": "&uarr;", "number": "&#8593;", },
+		{ "char": "→", "before": "s", "after": "s", "entity": "&rarr;", "number": "&#8594;", },
+		{ "char": "↓", "before": "s", "after": "s", "entity": "&darr;", "number": "&#8595;", },
+		{ "char": "↔", "before": "s", "after": "s", "entity": "&harr;", "number": "&#8596;", },
+		{ "char": "↵", "before": "s", "after": "s", "entity": "&crarr;", "number": "&#8629;", },
+		{ "char": "⌈", "before": "s", "after": "s", "entity": "&lceil;", "number": "&#8968;", },
+		{ "char": "⌉", "before": "s", "after": "s", "entity": "&rceil;", "number": "&#8969;", },
+		{ "char": "⌊", "before": "s", "after": "s", "entity": "&lfloor;", "number": "&#8970;", },
+		{ "char": "⌋", "before": "s", "after": "s", "entity": "&rfloor;", "number": "&#8971;", },
+		{ "char": "◊", "before": "s", "after": "s", "entity": "&loz;", "number": "&#9674;", },
+		{ "char": "♠", "before": "s", "after": "s", "entity": "&spades;", "number": "&#9824;", },
+		{ "char": "♣", "before": "s", "after": "s", "entity": "&clubs;", "number": "&#9827;", },
+		{ "char": "♥", "before": "s", "after": "s", "entity": "&hearts;", "number": "&#9829;", },
+		{ "char": "♦", "before": "s", "after": "s", "entity": "&diams;", "number": "&#9830;", },
+	];
 	const strokes = [
 		new Stroke("l", 1),		// vertical stroke
 		new Stroke("o", 2),		// round stroke
@@ -269,340 +617,8 @@ letter-spacing by comparing the character's stroke types to the adjacent letters
 		new Stroke("s", 3),		// special case
 		new Stroke("n", 0)		// none case
 	];
-	const entities = [
-		{ "char": " ", "entity": null, "number": "&#32;" },
-		{ "char": "!", "entity": null, "number": "&#33;" },
-		{ "char": "\"", "entity": null, "number": "&#34;" },
-		{ "char": "#", "entity": null, "number": "&#35;" },
-		{ "char": "$", "entity": null, "number": "&#36;" },
-		{ "char": "%", "entity": null, "number": "&#37;" },
-		{ "char": "&", "entity": "&amp;", "number": "&#38;" },
-		{ "char": "'", "entity": null, "number": "&#39;" },
-		{ "char": "(", "entity": null, "number": "&#40;" },
-		{ "char": ")", "entity": null, "number": "&#41;" },
-		{ "char": "*", "entity": null, "number": "&#42;" },
-		{ "char": "+", "entity": null, "number": "&#43;" },
-		{ "char": ",", "entity": null, "number": "&#44;" },
-		{ "char": "-", "entity": null, "number": "&#45;" },
-		{ "char": ".", "entity": null, "number": "&#46;" },
-		{ "char": "/", "entity": null, "number": "&#47;" },
-		{ "char": "0", "entity": null, "number": "&#48;" },
-		{ "char": "1", "entity": null, "number": "&#49;" },
-		{ "char": "2", "entity": null, "number": "&#50;" },
-		{ "char": "3", "entity": null, "number": "&#51;" },
-		{ "char": "4", "entity": null, "number": "&#52;" },
-		{ "char": "5", "entity": null, "number": "&#53;" },
-		{ "char": "6", "entity": null, "number": "&#54;" },
-		{ "char": "7", "entity": null, "number": "&#55;" },
-		{ "char": "8", "entity": null, "number": "&#56;" },
-		{ "char": "9", "entity": null, "number": "&#57;" },
-		{ "char": ":", "entity": null, "number": "&#58;" },
-		{ "char": ";", "entity": null, "number": "&#59;" },
-		{ "char": "<", "entity": "&lt;", "number": "&#60;" },
-		{ "char": "=", "entity": null, "number": "&#61;" },
-		{ "char": ">", "entity": "&gt;", "number": "&#62;" },
-		{ "char": "?", "entity": null, "number": "&#63;" },
-		{ "char": "@", "entity": null, "number": "&#64;" },
-		{ "char": "A", "entity": null, "number": "&#65;" },
-		{ "char": "B", "entity": null, "number": "&#66;" },
-		{ "char": "C", "entity": null, "number": "&#67;" },
-		{ "char": "D", "entity": null, "number": "&#68;" },
-		{ "char": "E", "entity": null, "number": "&#69;" },
-		{ "char": "F", "entity": null, "number": "&#70;" },
-		{ "char": "G", "entity": null, "number": "&#71;" },
-		{ "char": "H", "entity": null, "number": "&#72;" },
-		{ "char": "I", "entity": null, "number": "&#73;" },
-		{ "char": "J", "entity": null, "number": "&#74;" },
-		{ "char": "K", "entity": null, "number": "&#75;" },
-		{ "char": "L", "entity": null, "number": "&#76;" },
-		{ "char": "M", "entity": null, "number": "&#77;" },
-		{ "char": "N", "entity": null, "number": "&#78;" },
-		{ "char": "O", "entity": null, "number": "&#79;" },
-		{ "char": "P", "entity": null, "number": "&#80;" },
-		{ "char": "Q", "entity": null, "number": "&#81;" },
-		{ "char": "R", "entity": null, "number": "&#82;" },
-		{ "char": "S", "entity": null, "number": "&#83;" },
-		{ "char": "T", "entity": null, "number": "&#84;" },
-		{ "char": "U", "entity": null, "number": "&#85;" },
-		{ "char": "V", "entity": null, "number": "&#86;" },
-		{ "char": "W", "entity": null, "number": "&#87;" },
-		{ "char": "X", "entity": null, "number": "&#88;" },
-		{ "char": "Y", "entity": null, "number": "&#89;" },
-		{ "char": "Z", "entity": null, "number": "&#90;" },
-		{ "char": "[", "entity": null, "number": "&#91;" },
-		{ "char": "\\", "entity": null, "number": "&#92;" },
-		{ "char": "]", "entity": null, "number": "&#93;" },
-		{ "char": "^", "entity": null, "number": "&#94;" },
-		{ "char": "_", "entity": null, "number": "&#95;" },
-		{ "char": "`", "entity": null, "number": "&#96;" },
-		{ "char": "a", "entity": null, "number": "&#97;" },
-		{ "char": "b", "entity": null, "number": "&#98;" },
-		{ "char": "c", "entity": null, "number": "&#99;" },
-		{ "char": "d", "entity": null, "number": "&#100;" },
-		{ "char": "e", "entity": null, "number": "&#101;" },
-		{ "char": "f", "entity": null, "number": "&#102;" },
-		{ "char": "g", "entity": null, "number": "&#103;" },
-		{ "char": "h", "entity": null, "number": "&#104;" },
-		{ "char": "i", "entity": null, "number": "&#105;" },
-		{ "char": "j", "entity": null, "number": "&#106;" },
-		{ "char": "k", "entity": null, "number": "&#107;" },
-		{ "char": "l", "entity": null, "number": "&#108;" },
-		{ "char": "m", "entity": null, "number": "&#109;" },
-		{ "char": "n", "entity": null, "number": "&#110;" },
-		{ "char": "o", "entity": null, "number": "&#111;" },
-		{ "char": "p", "entity": null, "number": "&#112;" },
-		{ "char": "q", "entity": null, "number": "&#113;" },
-		{ "char": "r", "entity": null, "number": "&#114;" },
-		{ "char": "s", "entity": null, "number": "&#115;" },
-		{ "char": "t", "entity": null, "number": "&#116;" },
-		{ "char": "u", "entity": null, "number": "&#117;" },
-		{ "char": "v", "entity": null, "number": "&#118;" },
-		{ "char": "w", "entity": null, "number": "&#119;" },
-		{ "char": "x", "entity": null, "number": "&#120;" },
-		{ "char": "y", "entity": null, "number": "&#121;" },
-		{ "char": "z", "entity": null, "number": "&#122;" },
-		{ "char": "{", "entity": null, "number": "&#123;" },
-		{ "char": "|", "entity": null, "number": "&#124;" },
-		{ "char": "}", "entity": null, "number": "&#125;" },
-		{ "char": "~", "entity": null, "number": "&#126;" },
-		{ "char": "À", "entity": "&Agrave;", "number": "&#192;" },
-		{ "char": "Á", "entity": "&Aacute;", "number": "&#193;" },
-		{ "char": "Â", "entity": "&Acirc;", "number": "&#194;" },
-		{ "char": "Ã", "entity": "&Atilde;", "number": "&#195;" },
-		{ "char": "Ä", "entity": "&Auml;", "number": "&#196;" },
-		{ "char": "Å", "entity": "&Aring;", "number": "&#197;" },
-		{ "char": "Æ", "entity": "&AElig;", "number": "&#198;" },
-		{ "char": "Ç", "entity": "&Ccedil;", "number": "&#199;" },
-		{ "char": "È", "entity": "&Egrave;", "number": "&#200;" },
-		{ "char": "É", "entity": "&Eacute;", "number": "&#201;" },
-		{ "char": "Ê", "entity": "&Ecirc;", "number": "&#202;" },
-		{ "char": "Ë", "entity": "&Euml;", "number": "&#203;" },
-		{ "char": "Ì", "entity": "&Igrave;", "number": "&#204;" },
-		{ "char": "Í", "entity": "&Iacute;", "number": "&#205;" },
-		{ "char": "Î", "entity": "&Icirc;", "number": "&#206;" },
-		{ "char": "Ï", "entity": "&Iuml;", "number": "&#207;" },
-		{ "char": "Ð", "entity": "&ETH;", "number": "&#208;" },
-		{ "char": "Ñ", "entity": "&Ntilde;", "number": "&#209;" },
-		{ "char": "Ò", "entity": "&Ograve;", "number": "&#210;" },
-		{ "char": "Ó", "entity": "&Oacute;", "number": "&#211;" },
-		{ "char": "Ô", "entity": "&Ocirc;", "number": "&#212;" },
-		{ "char": "Õ", "entity": "&Otilde;", "number": "&#213;" },
-		{ "char": "Ö", "entity": "&Ouml;", "number": "&#214;" },
-		{ "char": "Ø", "entity": "&Oslash;", "number": "&#216;" },
-		{ "char": "Ù", "entity": "&Ugrave;", "number": "&#217;" },
-		{ "char": "Ú", "entity": "&Uacute;", "number": "&#218;" },
-		{ "char": "Û", "entity": "&Ucirc;", "number": "&#219;" },
-		{ "char": "Ü", "entity": "&Uuml;", "number": "&#220;" },
-		{ "char": "Ý", "entity": "&Yacute;", "number": "&#221;" },
-		{ "char": "Þ", "entity": "&THORN;", "number": "&#222;" },
-		{ "char": "ß", "entity": "&szlig;", "number": "&#223;" },
-		{ "char": "à", "entity": "&agrave;", "number": "&#224;" },
-		{ "char": "á", "entity": "&aacute;", "number": "&#225;" },
-		{ "char": "â", "entity": "&acirc;", "number": "&#226;" },
-		{ "char": "ã", "entity": "&atilde;", "number": "&#227;" },
-		{ "char": "ä", "entity": "&auml;", "number": "&#228;" },
-		{ "char": "å", "entity": "&aring;", "number": "&#229;" },
-		{ "char": "æ", "entity": "&aelig;", "number": "&#230;" },
-		{ "char": "ç", "entity": "&ccedil;", "number": "&#231;" },
-		{ "char": "è", "entity": "&egrave;", "number": "&#232;" },
-		{ "char": "é", "entity": "&eacute;", "number": "&#233;" },
-		{ "char": "ê", "entity": "&ecirc;", "number": "&#234;" },
-		{ "char": "ë", "entity": "&euml;", "number": "&#235;" },
-		{ "char": "ì", "entity": "&igrave;", "number": "&#236;" },
-		{ "char": "í", "entity": "&iacute;", "number": "&#237;" },
-		{ "char": "î", "entity": "&icirc;", "number": "&#238;" },
-		{ "char": "ï", "entity": "&iuml;", "number": "&#239;" },
-		{ "char": "ð", "entity": "&eth;", "number": "&#240;" },
-		{ "char": "ñ", "entity": "&ntilde;", "number": "&#241;" },
-		{ "char": "ò", "entity": "&ograve;", "number": "&#242;" },
-		{ "char": "ó", "entity": "&oacute;", "number": "&#243;" },
-		{ "char": "ô", "entity": "&ocirc;", "number": "&#244;" },
-		{ "char": "õ", "entity": "&otilde;", "number": "&#245;" },
-		{ "char": "ö", "entity": "&ouml;", "number": "&#246;" },
-		{ "char": "ø", "entity": "&oslash;", "number": "&#248;" },
-		{ "char": "ù", "entity": "&ugrave;", "number": "&#249;" },
-		{ "char": "ú", "entity": "&uacute;", "number": "&#250;" },
-		{ "char": "û", "entity": "&ucirc;", "number": "&#251;" },
-		{ "char": "ü", "entity": "&uuml;", "number": "&#252;" },
-		{ "char": "ý", "entity": "&yacute;", "number": "&#253;" },
-		{ "char": "þ", "entity": "&thorn;", "number": "&#254;" },
-		{ "char": "ÿ", "entity": "&yuml;", "number": "&#255;" },
-		{ "char": " ", "entity": "&nbsp;", "number": "&#160;" },
-		{ "char": "¡", "entity": "&iexcl;", "number": "&#161;" },
-		{ "char": "¢", "entity": "&cent;", "number": "&#162;" },
-		{ "char": "£", "entity": "&pound;", "number": "&#163;" },
-		{ "char": "¤", "entity": "&curren;", "number": "&#164;" },
-		{ "char": "¥", "entity": "&yen;", "number": "&#165;" },
-		{ "char": "¦", "entity": "&brvbar;", "number": "&#166;" },
-		{ "char": "§", "entity": "&sect;", "number": "&#167;" },
-		{ "char": "¨", "entity": "&uml;", "number": "&#168;" },
-		{ "char": "©", "entity": "&copy;", "number": "&#169;" },
-		{ "char": "ª", "entity": "&ordf;", "number": "&#170;" },
-		{ "char": "«", "entity": "&laquo;", "number": "&#171;" },
-		{ "char": "¬", "entity": "&not;", "number": "&#172;" },
-		{ "char": " ", "entity": "&shy;", "number": "&#173;" },
-		{ "char": "®", "entity": "&reg;", "number": "&#174;" },
-		{ "char": "¯", "entity": "&macr;", "number": "&#175;" },
-		{ "char": "°", "entity": "&deg;", "number": "&#176;" },
-		{ "char": "±", "entity": "&plusmn;", "number": "&#177;" },
-		{ "char": "²", "entity": "&sup2;", "number": "&#178;" },
-		{ "char": "³", "entity": "&sup3;", "number": "&#179;" },
-		{ "char": "´", "entity": "&acute;", "number": "&#180;" },
-		{ "char": "µ", "entity": "&micro;", "number": "&#181;" },
-		{ "char": "¶", "entity": "&para;", "number": "&#182;" },
-		{ "char": "¸", "entity": "&cedil;", "number": "&#184;" },
-		{ "char": "¹", "entity": "&sup1;", "number": "&#185;" },
-		{ "char": "º", "entity": "&ordm;", "number": "&#186;" },
-		{ "char": "»", "entity": "&raquo;", "number": "&#187;" },
-		{ "char": "¼", "entity": "&frac14;", "number": "&#188;" },
-		{ "char": "½", "entity": "&frac12;", "number": "&#189;" },
-		{ "char": "¾", "entity": "&frac34;", "number": "&#190;" },
-		{ "char": "¿", "entity": "&iquest;", "number": "&#191;" },
-		{ "char": "×", "entity": "&times;", "number": "&#215;" },
-		{ "char": "÷", "entity": "&divide;", "number": "&#247;" },
-		{ "char": "∀", "entity": "&forall;", "number": "&#8704;" },
-		{ "char": "∂", "entity": "&part;", "number": "&#8706;" },
-		{ "char": "∃", "entity": "&exist;", "number": "&#8707;" },
-		{ "char": "∅", "entity": "&empty;", "number": "&#8709;" },
-		{ "char": "∇", "entity": "&nabla;", "number": "&#8711;" },
-		{ "char": "∈", "entity": "&isin;", "number": "&#8712;" },
-		{ "char": "∉", "entity": "&notin;", "number": "&#8713;" },
-		{ "char": "∋", "entity": "&ni;", "number": "&#8715;" },
-		{ "char": "∏", "entity": "&prod;", "number": "&#8719;" },
-		{ "char": "∑", "entity": "&sum;", "number": "&#8721;" },
-		{ "char": "−", "entity": "&minus;", "number": "&#8722;" },
-		{ "char": "∗", "entity": "&lowast;", "number": "&#8727;" },
-		{ "char": "√", "entity": "&radic;", "number": "&#8730;" },
-		{ "char": "∝", "entity": "&prop;", "number": "&#8733;" },
-		{ "char": "∞", "entity": "&infin;", "number": "&#8734;" },
-		{ "char": "∠", "entity": "&ang;", "number": "&#8736;" },
-		{ "char": "∧", "entity": "&and;", "number": "&#8743;" },
-		{ "char": "∨", "entity": "&or;", "number": "&#8744;" },
-		{ "char": "∩", "entity": "&cap;", "number": "&#8745;" },
-		{ "char": "∪", "entity": "&cup;", "number": "&#8746;" },
-		{ "char": "∫", "entity": "&int;", "number": "&#8747;" },
-		{ "char": "∴", "entity": "&there4;", "number": "&#8756;" },
-		{ "char": "∼", "entity": "&sim;", "number": "&#8764;" },
-		{ "char": "≅", "entity": "&cong;", "number": "&#8773;" },
-		{ "char": "≈", "entity": "&asymp;", "number": "&#8776;" },
-		{ "char": "≠", "entity": "&ne;", "number": "&#8800;" },
-		{ "char": "≡", "entity": "&equiv;", "number": "&#8801;" },
-		{ "char": "≤", "entity": "&le;", "number": "&#8804;" },
-		{ "char": "≥", "entity": "&ge;", "number": "&#8805;" },
-		{ "char": "⊂", "entity": "&sub;", "number": "&#8834;" },
-		{ "char": "⊃", "entity": "&sup;", "number": "&#8835;" },
-		{ "char": "⊄", "entity": "&nsub;", "number": "&#8836;" },
-		{ "char": "⊆", "entity": "&sube;", "number": "&#8838;" },
-		{ "char": "⊇", "entity": "&supe;", "number": "&#8839;" },
-		{ "char": "⊕", "entity": "&oplus;", "number": "&#8853;" },
-		{ "char": "⊗", "entity": "&otimes;", "number": "&#8855;" },
-		{ "char": "⊥", "entity": "&perp;", "number": "&#8869;" },
-		{ "char": "⋅", "entity": "&sdot;", "number": "&#8901;" },
-		{ "char": "Α", "entity": "&Alpha;", "number": "&#913;" },
-		{ "char": "Β", "entity": "&Beta;", "number": "&#914;" },
-		{ "char": "Γ", "entity": "&Gamma;", "number": "&#915;" },
-		{ "char": "Δ", "entity": "&Delta;", "number": "&#916;" },
-		{ "char": "Ε", "entity": "&Epsilon;", "number": "&#917;" },
-		{ "char": "Ζ", "entity": "&Zeta;", "number": "&#918;" },
-		{ "char": "Η", "entity": "&Eta;", "number": "&#919;" },
-		{ "char": "Θ", "entity": "&Theta;", "number": "&#920;" },
-		{ "char": "Ι", "entity": "&Iota;", "number": "&#921;" },
-		{ "char": "Κ", "entity": "&Kappa;", "number": "&#922;" },
-		{ "char": "Λ", "entity": "&Lambda;", "number": "&#923;" },
-		{ "char": "Μ", "entity": "&Mu;", "number": "&#924;" },
-		{ "char": "Ν", "entity": "&Nu;", "number": "&#925;" },
-		{ "char": "Ξ", "entity": "&Xi;", "number": "&#926;" },
-		{ "char": "Ο", "entity": "&Omicron;", "number": "&#927;" },
-		{ "char": "Π", "entity": "&Pi;", "number": "&#928;" },
-		{ "char": "Ρ", "entity": "&Rho;", "number": "&#929;" },
-		{ "char": "Σ", "entity": "&Sigma;", "number": "&#931;" },
-		{ "char": "Τ", "entity": "&Tau;", "number": "&#932;" },
-		{ "char": "Υ", "entity": "&Upsilon;", "number": "&#933;" },
-		{ "char": "Φ", "entity": "&Phi;", "number": "&#934;" },
-		{ "char": "Χ", "entity": "&Chi;", "number": "&#935;" },
-		{ "char": "Ψ", "entity": "&Psi;", "number": "&#936;" },
-		{ "char": "Ω", "entity": "&Omega;", "number": "&#937;" },
-		{ "char": "α", "entity": "&alpha;", "number": "&#945;" },
-		{ "char": "β", "entity": "&beta;", "number": "&#946;" },
-		{ "char": "γ", "entity": "&gamma;", "number": "&#947;" },
-		{ "char": "δ", "entity": "&delta;", "number": "&#948;" },
-		{ "char": "ε", "entity": "&epsilon;", "number": "&#949;" },
-		{ "char": "ζ", "entity": "&zeta;", "number": "&#950;" },
-		{ "char": "η", "entity": "&eta;", "number": "&#951;" },
-		{ "char": "θ", "entity": "&theta;", "number": "&#952;" },
-		{ "char": "ι", "entity": "&iota;", "number": "&#953;" },
-		{ "char": "κ", "entity": "&kappa;", "number": "&#954;" },
-		{ "char": "λ", "entity": "&lambda;", "number": "&#955;" },
-		{ "char": "μ", "entity": "&mu;", "number": "&#956;" },
-		{ "char": "ν", "entity": "&nu;", "number": "&#957;" },
-		{ "char": "ξ", "entity": "&xi;", "number": "&#958;" },
-		{ "char": "ο", "entity": "&omicron;", "number": "&#959;" },
-		{ "char": "π", "entity": "&pi;", "number": "&#960;" },
-		{ "char": "ρ", "entity": "&rho;", "number": "&#961;" },
-		{ "char": "ς", "entity": "&sigmaf;", "number": "&#962;" },
-		{ "char": "σ", "entity": "&sigma;", "number": "&#963;" },
-		{ "char": "τ", "entity": "&tau;", "number": "&#964;" },
-		{ "char": "υ", "entity": "&upsilon;", "number": "&#965;" },
-		{ "char": "φ", "entity": "&phi;", "number": "&#966;" },
-		{ "char": "χ", "entity": "&chi;", "number": "&#967;" },
-		{ "char": "ψ", "entity": "&psi;", "number": "&#968;" },
-		{ "char": "ω", "entity": "&omega;", "number": "&#969;" },
-		{ "char": "ϑ", "entity": "&thetasym;", "number": "&#977;" },
-		{ "char": "ϒ", "entity": "&upsih;", "number": "&#978;" },
-		{ "char": "ϖ", "entity": "&piv;", "number": "&#982;" },
-		{ "char": "Œ", "entity": "&OElig;", "number": "&#338;" },
-		{ "char": "œ", "entity": "&oelig;", "number": "&#339;" },
-		{ "char": "Š", "entity": "&Scaron;", "number": "&#352;" },
-		{ "char": "š", "entity": "&scaron;", "number": "&#353;" },
-		{ "char": "Ÿ", "entity": "&Yuml;", "number": "&#376;" },
-		{ "char": "ƒ", "entity": "&fnof;", "number": "&#402;" },
-		{ "char": "ˆ", "entity": "&circ;", "number": "&#710;" },
-		{ "char": "˜", "entity": "&tilde;", "number": "&#732;" },
-		{ "char": " ", "entity": "&ensp;", "number": "&#8194;" },
-		{ "char": " ", "entity": "&emsp;", "number": "&#8195;" },
-		{ "char": "", "entity": "&thinsp;", "number": "&#8201;" },
-		{ "char": "", "entity": "&zwnj;", "number": "&#8204;" },
-		{ "char": "", "entity": "&zwj;", "number": "&#8205;" },
-		{ "char": "", "entity": "&lrm;", "number": "&#8206;" },
-		{ "char": "", "entity": "&rlm;", "number": "&#8207;" },
-		{ "char": "–", "entity": "&ndash;", "number": "&#8211;" },
-		{ "char": "—", "entity": "&mdash;", "number": "&#8212;" },
-		{ "char": "‘", "entity": "&lsquo;", "number": "&#8216;" },
-		{ "char": "’", "entity": "&rsquo;", "number": "&#8217;" },
-		{ "char": "‚", "entity": "&sbquo;", "number": "&#8218;" },
-		{ "char": "“", "entity": "&ldquo;", "number": "&#8220;" },
-		{ "char": "”", "entity": "&rdquo;", "number": "&#8221;" },
-		{ "char": "„", "entity": "&bdquo;", "number": "&#8222;" },
-		{ "char": "†", "entity": "&dagger;", "number": "&#8224;" },
-		{ "char": "‡", "entity": "&Dagger;", "number": "&#8225;" },
-		{ "char": "•", "entity": "&bull;", "number": "&#8226;" },
-		{ "char": "…", "entity": "&hellip;", "number": "&#8230;" },
-		{ "char": "‰", "entity": "&permil;", "number": "&#8240;" },
-		{ "char": "′", "entity": "&prime;", "number": "&#8242;" },
-		{ "char": "″", "entity": "&Prime;", "number": "&#8243;" },
-		{ "char": "‹", "entity": "&lsaquo;", "number": "&#8249;" },
-		{ "char": "›", "entity": "&rsaquo;", "number": "&#8250;" },
-		{ "char": "‾", "entity": "&oline;", "number": "&#8254;" },
-		{ "char": "€", "entity": "&euro;", "number": "&#8364;" },
-		{ "char": "™", "entity": "&trade;", "number": "&#8482;" },
-		{ "char": "←", "entity": "&larr;", "number": "&#8592;" },
-		{ "char": "↑", "entity": "&uarr;", "number": "&#8593;" },
-		{ "char": "→", "entity": "&rarr;", "number": "&#8594;" },
-		{ "char": "↓", "entity": "&darr;", "number": "&#8595;" },
-		{ "char": "↔", "entity": "&harr;", "number": "&#8596;" },
-		{ "char": "↵", "entity": "&crarr;", "number": "&#8629;" },
-		{ "char": "⌈", "entity": "&lceil;", "number": "&#8968;" },
-		{ "char": "⌉", "entity": "&rceil;", "number": "&#8969;" },
-		{ "char": "⌊", "entity": "&lfloor;", "number": "&#8970;" },
-		{ "char": "⌋", "entity": "&rfloor;", "number": "&#8971;" },
-		{ "char": "◊", "entity": "&loz;", "number": "&#9674;" },
-		{ "char": "♠", "entity": "&spades;", "number": "&#9824;" },
-		{ "char": "♣", "entity": "&clubs;", "number": "&#9827;" },
-		{ "char": "♥", "entity": "&hearts;", "number": "&#9829;" },
-		{ "char": "♦", "entity": "&diams;", "number": "&#9830;" }
-	];
-	//const selectorsDefault = ["h1", "h2", "h3", "h4", "h5", "h6", "p"];
-	const selectorsDefault = ["h1"];
+	const selectorsDefault = ["h1", "h2", "h3", "h4", "h5", "h6", "p"];
+	//const selectorsDefault = ["h1"];
 
 	//	KernBot
 	// ===========================================================================
@@ -637,7 +653,7 @@ letter-spacing by comparing the character's stroke types to the adjacent letters
 			"output": output
 		};
 		// return a new KernBot.init object that initializes the options
-		return new KernBot.init(options, characters, strokes, entities);
+		return new KernBot.init(options, characters, entities, strokes);
 	}
 	/**
 	 * KernBot initialization function
@@ -651,27 +667,24 @@ letter-spacing by comparing the character's stroke types to the adjacent letters
 	 * @return log KernBot to console
 	 */
 	// KernBot object initialization
-	KernBot.init = function(options, characters, strokes, entities) {
-
+	KernBot.init = function(options, characters, entities, strokes) {
 		// vars
 		let self = this;
 		self.strokes = strokes;
-		self.strokePairs = self._buildPairs("strokes");
-		self.characters = self._buildCharacters(characters);
-		self.characterPairs = self._buildPairs("characters");
-		self.entities = entities;
-
+		self.strokePairs = self._buildPairsData("strokes");
+		self.characters = self._buildStrokeData(characters);
+		self.entities = self._buildStrokeData(entities);
+		self.characterPairs = self._buildPairsData("characters");
 		// operations
 		self.track = options.track;
 		self.selectors = options.selectors;
 		self.output = options.output;
 		self.HTMLelements = self._gatherElements(self.selectors);
-
+		self.elmRegEx = new RegExp("(<(.|\n)*?>|&(.|\n)*?;)", "g");
 		// data tracking
 		self.sequences = [];
 		self.nodes = [];
 		self.nodePairs = [];
-
 		// DEBUGING
 		console.log(self);
 		console.log(self.strokePairs);
@@ -734,19 +747,20 @@ letter-spacing by comparing the character's stroke types to the adjacent letters
 		return console.log(string);
 	}
 	/**
-	 * builds array of characters
-	 * @param [array] characters - an array of character objects with defined stroke data (before & after)
+	 * builds array of stroke data
+	 * @param [array] array - an array of character or entity objects with defined stroke data (before & after)
 	 * @return [array] output - array of all the characters KernBot is aware of
 	 */
-	KernBot.prototype._buildCharacters = function(characters) {
+	KernBot.prototype._buildStrokeData = function(array) {
 		// return var
 		let output = [];
 		// loop through the characters
-		for (let i = 0; i < characters.length; i++) {
+		for (let i = 0; i < array.length; i++) {
 			// get strokes data
-			let sBefore = this._getLegendData(characters[i].before, "code", this.strokes),
-				sAfter = this._getLegendData(characters[i].after, "code", this.strokes);
-			output.push(new Character(characters[i].char, sBefore, sAfter));
+			let sBefore = this._getLegendData(array[i].before, "code", this.strokes),
+				sAfter = this._getLegendData(array[i].after, "code", this.strokes);
+			// add new character to output
+			output.push(new Character(array[i].char, sBefore, sAfter, array[i].entity, array[i].number));
 		}
 		// return output
 		return output;
@@ -756,7 +770,7 @@ letter-spacing by comparing the character's stroke types to the adjacent letters
 	 * @param [array] this.strokes - the input data of individuals strokes
 	 * @return [array] output - array of every stroke pair
 	 */
-	KernBot.prototype._buildPairs = function(array) {
+	KernBot.prototype._buildPairsData = function(array) {
 		// output
 		let output = [];
 		// 2D loop through types
@@ -900,6 +914,34 @@ letter-spacing by comparing the character's stroke types to the adjacent letters
 		return output;
 	}
 	/**
+	 * Returns true if it is a DOM element
+	 * @param {object} o - an html element to check
+	 * @return (boolean) T/F
+	 */
+	KernBot.prototype._isElement = function(o) { return (
+			typeof HTMLElement === "object" ?
+			o instanceof HTMLElement :
+			o && typeof o === "object" && o !== null && o.nodeType === 1 && typeof o.nodeName === "string"
+	)}
+	/**
+	 * Returns true if it is a DOM node
+	 * @param "string" html - an html string to convert to an html element
+	 * @return (boolean) T/F
+	 */
+	 KernBot.prototype._isNode = function(o) { return (
+			typeof Node === "object" ?
+			o instanceof Node :
+			o && typeof o === "object" && typeof o.nodeType === "number" && typeof o.nodeName==="string"
+	)}
+	/**
+	 * Updates an elements innerHTML to its kerned sequence data
+	 * @param "string" html - an html string to convert to an html element
+	 * @return {object} HTML nodes array or false
+	 */
+	KernBot.prototype._toNodes = function(html) {
+		return new DOMParser().parseFromString(html,'text/html').body.childNodes || false;
+	}
+	/**
 	 * Checks KernBot sequences to see if the element has already been kerned
 	 * @param {object} element - an HTML element
 	 * @return (boolean) T/F - True if element exists in sequence
@@ -911,9 +953,13 @@ letter-spacing by comparing the character's stroke types to the adjacent letters
 			return (this.sequences[i].context === element ? true : false);
 		}
 	}
-
-
-	KernBot.prototype._checkInjectElementIndex = function(index, elements) {
+	/**
+	 * Check if current index is between the indexes of an element to inject
+	 * @param (number) index - a point in a loop
+	 * @param [array] element - the elements to loop through and check their index range
+	 * @return {object} element or (boolean) False - the element that the index belongs to
+	 */
+	KernBot.prototype._checkInjectIndex = function(index, elements) {
 		// loop through the elements
 		for (let i = 0; i < elements.length; i++) {
 			// check if current index is between the indexes of an element to inject
@@ -924,7 +970,6 @@ letter-spacing by comparing the character's stroke types to the adjacent letters
 		// return false
 		return false;
 	}
-
 	/**
 	 * Outputs a sequence of characters and tags
 	 * @param {object} context - the HTML context (element) the string exists at
@@ -936,149 +981,116 @@ letter-spacing by comparing the character's stroke types to the adjacent letters
 		let sequenceOutput = [],
 			nodePairsOutput = [],
 			elements = [];
-
 		// parser vars
 		let tagRegEx = new RegExp("<(.|\n)*?>", "g"),
 			entityRegEx = new RegExp("&(.|\n)*?;", "g"),
-			// <tags> and &entities;
-			elms = [],
-			tags = string.match(tagRegEx) || false,
-			entities = string.match(entityRegEx) || false,
-			// string info
+			tags = string.match(tagRegEx) || [],
+			entities = string.match(entityRegEx) || [],
+			elms = tags.concat(entities),
 			parsedEntities = string.replace(entityRegEx, ""),
 			strippedString = parsedEntities.replace(tagRegEx,"");
-
-		// gather elements to re-inject into sequence
-		if (tags && entities) { elms = tags.concat(entities); }
-
-		console.log(tags);
-		console.log(entities);
-		console.log(elms);
-		console.log(parsedEntities);
-		console.log(strippedString);
-		//console.log(string.length - strippedString.length);
-		console.log("=========================");
-		//return false;
-
-		// loop through tags
+		// loop through elms
 		for (let i = 0; elms && i < elms.length; i++) {
 			// splice vars
 			let start = string.indexOf(elms[i]),
 				end = start + elms[i].length,
 				element = string.slice(start, end),
 				isEntity = entityRegEx.test(element) || false;
-
-			//console.log("inject at: " + start);
-			//console.log(element);
-			//console.log(element.length);
-			//console.log("-----");
-
 			// store the element in an array for now
 			elements.push(new Element(context, string, element, start, end, isEntity));
 		}
-
+		// outer loop vars
+		let lastElementChar = false,
+			classIndex = 0;
 		// loop through the string
 		for (let i = 0; i < string.length; i++) {
-			// vars
-			let injectElementPrevious = this._checkInjectElementIndex(i-1, elements),
-				injectElementNow = this._checkInjectElementIndex(i, elements),
-				injectElementNext = this._checkInjectElementIndex(i+1, elements),
-				alreadyInjected = false,
-				previousChar = this._getLegendData(string[i-1], "char", this.characters) || false,
+			// loop vars
+			let previousChar = this._getLegendData(string[i-1], "char", this.characters) || false,
 				currentChar = this._getLegendData(string[i], "char", this.characters) || false,
 				nextChar = this._getLegendData(string[i+1], "char", this.characters) || false,
-				charPair = this._getLegendData(currentChar.char+nextChar.char, "pair", this.characterPairs) || false,
-				elementNode = null,
+				charPair = false,
+				// element injector
+				injectNow = this._checkInjectIndex(i, elements),
+				injectNext = this._checkInjectIndex(i+1, elements),
+				injectEntity = false,
+				skipInject = false,
+				// nodes
 				charNode = null,
 				charNodePair = null;
-
-			
-			console.log(i + ": " + string[i]);
-
-			// check element
-			if (injectElementNow) {
-				// current string item is part of an injected element
-				console.log("inject: (now)" + injectElementNow.char);
-			}
-			if (injectElementNext) {
-				// the next string item is a part of an injected element
-				console.log("inject: (next)" + injectElementNext.char);
-			}
-			if (injectElementPrevious) {
-				// the previous string item is a part of an injected element
-				console.log("inject: (previous)" + injectElementPrevious.char);
-			}
-
-			// default, there is no element to inject,
-			// this loop item is a character in the string
-			//console.log("inject: " + injectElementNow);
-
-			console.log("-----");
-			console.log("previous:");
-			console.log(previousChar);
-			console.log("current:");
-			console.log(currentChar);
-			console.log("next:");
-			console.log(nextChar);
-			console.log("pair:");
-			console.log(charPair);
-			console.log("==========");
-		}
-
-		return false;
-
-		// loop vars
-		let previousEntity = null;
-		// loop through the string
-		for (let i = 0; i < stripped.length; i++) {
-			// vars
-			let current = stripped[i],
-				next = stripped[i+1],
-				classIndex = i+1,
-				currentChar = this._getLegendData(current, "char", this.characters),
-				nextChar = this._getLegendData(next, "char", this.characters) || false,
-				charPair = this._getLegendData(currentChar.char+nextChar.char, "pair", this.characterPairs) || false,
-				injectElement = this._getLegendData(i, "injectAt", elements) || false,
-				entityExists = this._getLegendData(injectElement.char, "entity", this.entities) || this._getLegendData(injectElement.char, "number", this.entities) || false,
-				charNode = new Node(context, currentChar, classIndex),
-				charNodePair = null;
-
-			// add the current character to sequence array, if the element to inject is an entity
-			if (injectElement.isEntity) { sequenceOutput.push(charNode); }
-
-			// then look to see if there is an element to inject into the sequence
-			if (injectElement) {
-				// inject element into sequence array
-				sequenceOutput.push(injectElement);
-				// if the previous char was an HTML entity
-				if (previousEntity) {
-					// update the previous char in char pair
-					charPair = this._getLegendData(previousEntity.char+currentChar.char, "pair", this.characterPairs);
-					// reset the previous entity & reset the loop index,
-					previousEntity = null; i--;
-				}
-				// check if element to inject is an &entity; or <tag>
-				if (injectElement.isEntity && entityExists) {
-					// store the previous entity and update the next char in char pair
-					previousEntity = entityExists;
-					charPair = this._getLegendData(currentChar.char+entityExists.char, "pair", this.characterPairs);
+			// update the class index
+			classIndex++;
+			// if current char and not injecting an element
+			if (currentChar && !injectNow) {
+				// set the char node
+				charNode = new Node(context, currentChar, classIndex);
+				// inject node into sequence
+				sequenceOutput.push(charNode);
+				// if has next char
+				if (currentChar && nextChar) {
+					// set char pair
+					charPair = this._getLegendData(currentChar.char+nextChar.char, "pair", this.characterPairs);
+					// create nodePair
+					charNodePair = new NodePair(context, charPair, classIndex);
+					// add char pair kerning data to sequence node
+					charNode._addKerning(charNodePair.kern);
+					// store node pair to output
+					nodePairsOutput.push(charNodePair);
 				}
 			}
-
-			// add the current character to sequence array, if the element to inject is a tag
-			if (!injectElement.isEntity) { sequenceOutput.push(charNode); }
-
-			// check for next character and create NodePair
-			if (nextChar && charPair) {
-				// char pair vars
-				charNodePair = new NodePair(context, charPair, classIndex);
-				// add char pair kerning data to sequence node
-				charNode._addKerning(charNodePair.kern);
-				// store node pair to output
-				nodePairsOutput.push(charNodePair);
+			// START of element: if injecting next and not NOW
+			if (injectNext && !injectNow) {
+				// save last element char for loop ref
+				lastElementChar = injectNext.char.slice(-1);
+				// inject an &entity; next
+				if (injectNext.isEntity) {
+					// get the entity to inject
+					injectEntity = this._getLegendData(injectNext.char, "entity", this.entities) || this._getLegendData(injectNext.char, "number", this.entities);
+					// set char pair
+					if (currentChar && injectEntity) {
+						// set char pair
+						charPair = this._getLegendData(currentChar.char+injectEntity.char, "pair", this.characterPairs);
+						// create nodePair
+						charNodePair = new NodePair(context, charPair, classIndex);
+						// add char pair kerning data to sequence node
+						charNode._addKerning(charNodePair.kern);
+						// store node pair to output
+						nodePairsOutput.push(charNodePair);
+					}
+				}
+			}
+			// INJECT ITEM
+			if (injectNow) {
+				// END: if NOT injecting next, and at last entity char
+				if (!injectNext && string[i]==lastElementChar) {
+					// update the class index depending on the injected item length
+					classIndex -= (injectNow.char.length-1);
+					// inject an &entity; now
+					if (injectNow.isEntity) {
+						// get the entity to inject
+						injectEntity = this._getLegendData(injectNow.char, "entity", this.entities) || this._getLegendData(injectNow.char, "number", this.entities);
+						// set the char node
+						charNode = new Node(context, injectEntity, classIndex);
+						// set char pair
+						if (injectEntity && nextChar) {
+							// set char pair
+							charPair = this._getLegendData(injectEntity.char+nextChar.char, "pair", this.characterPairs);
+							charNodePair = new NodePair(context, charPair, classIndex);
+							// add char pair kerning data to sequence node
+							charNode._addKerning(charNodePair.kern);
+							// store node pair to output
+							nodePairsOutput.push(charNodePair);
+						}
+					// inject an <element> now
+					} else {
+						// set the char node
+						charNode = new Tag(context, injectNow, classIndex);
+					}
+					// inject node into sequence
+					sequenceOutput.push(charNode);
+				}
 			}
 		}
-		// return sequence
+		// return sequence & nodePairs
 		return [sequenceOutput, nodePairsOutput];
 	}
 	/**
@@ -1095,19 +1107,16 @@ letter-spacing by comparing the character's stroke types to the adjacent letters
 			// check this sequence item type, write correct HTML
 			switch (sequence[i].constructor.name) {
 				// element to inject
-				case "Element":
+				case "Tag":
 					// element vars
-					let elms = this._toNodes(sequence[i].char),
-						elm = elms[0],
-						elmRegEx = new RegExp("(<(.|\n)*?>|&(.|\n)*?;)", "g"),
-						startTag = false,
+					let elm = this._toNodes(sequence[i].char)[0],
 						elmString = sequence[i].char;
 					// if is HTML element
 					if (this._isElement(elm)) {
 						// add element class
-						elm.classList.add("element");
+						elm.classList.add("element-" + sequence[i].class.substring(5));
 						// get the start tag of the element
-						elmString = elm.outerHTML.match(elmRegEx)[0]
+						elmString = elm.outerHTML.match(this.elmRegEx)[0];
 					}
 					// add element to HTML
 					HTMLstring += elmString;
@@ -1124,34 +1133,6 @@ letter-spacing by comparing the character's stroke types to the adjacent letters
 		}
 		// return string
 		return HTMLstring;
-	}
-	/**
-	 * Returns true if it is a DOM node
-	 * @param "string" html - an html string to convert to an html element
-	 * @return (boolean) T/F
-	 */
-	 KernBot.prototype._isNode = function(o) { return (
-			typeof Node === "object" ?
-			o instanceof Node :
-			o && typeof o === "object" && typeof o.nodeType === "number" && typeof o.nodeName==="string"
-	)}
-	/**
-	 * Returns true if it is a DOM element
-	 * @param {object} o - an html element to check
-	 * @return (boolean) T/F
-	 */
-	KernBot.prototype._isElement = function(o) { return (
-			typeof HTMLElement === "object" ?
-			o instanceof HTMLElement :
-			o && typeof o === "object" && o !== null && o.nodeType === 1 && typeof o.nodeName === "string"
-	)}
-	/**
-	 * Updates an elements innerHTML to its kerned sequence data
-	 * @param "string" html - an html string to convert to an html element
-	 * @return {object} HTML nodes array or false
-	 */
-	KernBot.prototype._toNodes = function(html) {
-		return new DOMParser().parseFromString(html,'text/html').body.childNodes || false;
 	}
 	/**
 	 * Updates an elements innerHTML to its kerned sequence data
@@ -1309,42 +1290,93 @@ letter-spacing by comparing the character's stroke types to the adjacent letters
 	// ===========================================================================
 	/**
 	 * Outputs a sequence's HTML
+	 * @return f(x) this._updateElementHTML - update KernBot output html
 	 */
-	KernBot.prototype.outputSequenceHTML = function(seqID) {
+	KernBot.prototype.outputSequencesHTML = function() {
 		// output vars
-		let sequence = this.sequences[seqID],
-			nodes = sequence.sequence,
-			HTMLstring = "",
-			context = sequence.context.tagName,
-			hasClass = sequence.context.getAttribute("class") || false,
-			hasId = sequence.context.getAttribute("id") || false;
-		// loop through the sequence nodes
-		for (let i = 0; i < nodes.length; i++) {
-			HTMLstring += "&lt;span class=\""+nodes[i].class+"\"&gt;";
-			HTMLstring += nodes[i].char;
-			HTMLstring += "&lt;/span&gt;";
+		let HTMLstring = "";
+		console.log(this.sequences);
+		// loop through sequences
+		for (let x = 0; x < this.sequences.length; x++) {
+			// sequence vars
+			let sequence = this.sequences[x],
+				nodes = sequence.sequence,
+				context = sequence.context;
+			// start of sequence
+			HTMLstring += "&lt;!-- SEQUCENCE "
+			HTMLstring += context.tagName.toUpperCase();
+			HTMLstring += "." + context.classList;
+			HTMLstring += " --&gt;";
+			HTMLstring += "<br/>";
+			// loop through the sequence nodes
+			for (let i = 0; i < nodes.length; i++) {
+				// check this sequence item type, write correct HTML
+				switch (nodes[i].constructor.name) {
+					// element to inject
+					case "Tag":
+						// element vars
+						let elm = this._toNodes(nodes[i].char)[0],
+							element = nodes[i].char;
+						// if is HTML element
+						if (this._isElement(elm)) {
+							// add element class
+							elm.classList.add("element-" + nodes[i].class.substring(5));
+							// get the start tag of the element
+							element = elm.outerHTML.match(this.elmRegEx)[0];
+						}
+						// add element to HTML
+						HTMLstring += "&lt;";
+						HTMLstring += element.slice(1,-1);
+						HTMLstring += "&gt;";
+						HTMLstring += "<br/>";
+						break;
+					// node
+					default:
+						// inject node into a span wrapper with kerning data
+						HTMLstring += "&lt;span class=\"" + nodes[i].class + "\"&gt;";
+						HTMLstring += "style=\"letter-spacing:" + "-" + nodes[i].kerning + "px" + ";\"&gt;";
+						HTMLstring += nodes[i].char;
+						HTMLstring += "&lt;/span&gt;";
+						HTMLstring += "<br/>";
+						break;
+				}
+			}
+			// next sequence item
 			HTMLstring += "<br/>";
 		}
-		// write to output
-		return this.output.innerHTML = HTMLstring;
+		// update this.output html
+		return this._updateElementHTML(this.output, HTMLstring);
 	}
 	/**
 	 * Outputs a sequence's CSS
+	 * @return f(x) this._updateElementHTML - update KernBot output html
 	 */
-	KernBot.prototype.outputSequenceCSS = function(seqID) {
+	KernBot.prototype.outputSequencesCSS = function() {
 		// output vars
-		let sequence = this.sequences[seqID],
-			nodes = sequence.sequence,
-			HTMLstring = "",
-			context = sequence.context.tagName,
-			hasClass = sequence.context.getAttribute("class") || false,
-			hasId = sequence.context.getAttribute("id") || false;
-		// loop through the sequence nodes
-		for (let i = 0; i < nodes.length; i++) {
-			// check the type
-			switch (nodes[i].constructor.name) {
-				// injected element
-				case "Element":
+		let HTMLstring = "";
+		// loop through sequences
+		for (let x = 0; x < this.sequences.length; x++) {
+			// sequence vars
+			let sequence = this.sequences[x],
+				nodes = sequence.sequence,
+				context = sequence.context.tagName,
+				hasClass = sequence.context.getAttribute("class") || false,
+				hasId = sequence.context.getAttribute("id") || false;
+			// start of sequence
+			HTMLstring += "/* SEQUCENCE " + context.toUpperCase() + " */";
+			HTMLstring += "<br/>";
+			// loop through the sequence nodes
+			for (let i = 0; i < nodes.length; i++) {
+
+				// context
+				HTMLstring += context.toLowerCase();
+				// any class or id of that existed on context
+				if (hasClass) { HTMLstring += "."+hasClass; }
+				if (hasId) { HTMLstring += "#"+hasId; }
+				HTMLstring += " ";
+
+				// check the type
+				if (nodes[i].constructor.name == "Tag" || nodes[i].data.constructor.name == "Element") {
 					// tag vars
 					let tagNode = this._toNodes(nodes[i].char)[0] || false,
 						tag = false;
@@ -1352,36 +1384,30 @@ letter-spacing by comparing the character's stroke types to the adjacent letters
 					if (tagNode) { tag = tagNode.tagName.toLowerCase(); }
 					// if tag
 					if (tag) {
-						// context
-						HTMLstring += context.toLowerCase();
 						// tag element
-						HTMLstring += " "+tag+".element"+" {";
-						HTMLstring += " letter-spacing: 0px; ";
-						HTMLstring += "}";
-						// next line
+						HTMLstring += tag + ".element-" + nodes[i].class.substring(5);
+						HTMLstring += " ";
+						HTMLstring += "{ letter-spacing: 0px; }";
 						HTMLstring += "<br/>";
 					}
-					break;
-				// node by default
-				default:
-					// context
-					HTMLstring += context.toLowerCase();
-					if (hasClass) { HTMLstring += "."+hasClass; }
-					else if (hasId) { HTMLstring += "#"+hasId; }
-					HTMLstring += " span."+nodes[i].class+" {";
-					HTMLstring += " "+"letter-spacing: -"+nodes[i].kerning+"px;"+" ";
+				} else {
+					// node span
+					HTMLstring += "span."+nodes[i].class+" {";
+					HTMLstring += " ";
+					HTMLstring += "letter-spacing: -" + nodes[i].kerning + "px;";
+					HTMLstring += " ";
 					HTMLstring += "}";
-					// next line
 					HTMLstring += "<br/>";
-					break;
+				}
 			}
+			// next sequence item
+			HTMLstring += "<br/>";
 		}
-		// write to output
-		return this.output.innerHTML = HTMLstring;
+		// update this.output html
+		return this._updateElementHTML(this.output, HTMLstring);
 	}
 	/**
 	 * Loops through the nodePairs and write them to the input ID element
-	 * @param {object} trainerID - the ID of the HTML element to write output to
 	 * @return {action} write HTML string to the innerHTML of the input ID element
 	 */
 	KernBot.prototype.writeNodePairsToHTML = function() {
@@ -1420,8 +1446,8 @@ letter-spacing by comparing the character's stroke types to the adjacent letters
 			HTMLstring += "</li>";
 		}
 		HTMLstring += "</ul>";
-		// write to output
-		return this.output.innerHTML = HTMLstring;
+		// update this.output html
+		return this._updateElementHTML(this.output, HTMLstring);
 	}
 
 	// KERNBOT IN GLOBAL SPACE

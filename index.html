@@ -57,8 +57,12 @@ function runKernBot() {
 };
 // analyze Nodes to HTML
 function analyzeKernBotSequences() { TestKernBot.writeNodePairsToHTML(); };
-function viewOutputHTML() { TestKernBot.outputSequenceHTML(0); }
-function viewOutputCSS() { TestKernBot.outputSequenceCSS(0); }
+function viewOutputHTML() {
+	TestKernBot.outputSequencesHTML();
+}
+function viewOutputCSS() {
+	TestKernBot.outputSequencesCSS();
+}
 
 </script>
 </body>
