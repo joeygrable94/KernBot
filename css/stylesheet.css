@@ -32,7 +32,8 @@ a.kernbot:hover {
 }
 
 pre {
-	overflow-x: scroll;
+	max-height: 50vh;
+	overflow: scroll;
 }
 pre hr {
 	border-top: 2px solid white;
