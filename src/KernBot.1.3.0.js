@@ -638,14 +638,16 @@ letter-spacing by comparing the character's stroke types to the adjacent letters
 			// if input selectors, set the options to input value
 			if (input.selectors !== undefined) { selectors = input.selectors; }
 			// if input outputID, set the options to input value
-			if (input.outputID !== undefined) { output = self._getDocumentElement(input.outputID)[0]; }
-		} else {
-			// create output div
-			output = document.createElement("div");
-			// add output id to easily find
-			output.setAttribute("id", "KernBotOutput");
-			// add created KernBotOutput to end of DOM
-			document.body.appendChild(output);
+			if (input.outputID !== undefined) {
+				output = self._getDocumentElement(input.outputID)[0];
+			} else {
+				// create output div
+				output = document.createElement("div");
+				// add output id to easily find
+				output.setAttribute("id", "KernBotOutput");
+				// add created KernBotOutput to end of DOM
+				document.body.appendChild(output);
+			}
 		}
 
 		// set default options
@@ -689,6 +691,7 @@ letter-spacing by comparing the character's stroke types to the adjacent letters
 		self.RegExElm = new RegExp("<(.|\n|\d)*?>|&(.|\n)*?;|&#(.|\d)*?;", "g");
 		self.RegExTag = new RegExp("<(.|\n|\d)*?>", "g");
 		self.RegExEntity = new RegExp("&(.|\n)*?;|&#(.|\d)*?;", "g");
+		self.RegExEndTag = new RegExp("</", "g");
 		
 		// data tracking
 		self.sequences = [];
@@ -724,7 +727,7 @@ letter-spacing by comparing the character's stroke types to the adjacent letters
 
 			// sequnce nodes
 			let sequenceNodes = self._stringToSequenceNodes(element, string),
-				sequenceNodePairs = self._calcNodePairsKerning(element, sequence),
+				sequenceNodePairs = self._calcNodePairsKerning(element, sequenceNodes),
 				HTMLstring = "";
 
 			// prepare HTML string to write to DOM
@@ -747,15 +750,6 @@ letter-spacing by comparing the character's stroke types to the adjacent letters
 
 	//	KERNBOT HELPERS
 	// ===========================================================================
-	/**
-	 * A simple logger
-	 * @param "string" string - to output to console
-	 * @return log message to console
-	 */
-	KernBot.prototype.log = function(string) {
-		// return string to log
-		return console.log(string);
-	}
 	/**
 	 * builds array of stroke data
 	 * @param [array] array - an array of character or entity objects with defined stroke data (before & after)
@@ -949,7 +943,9 @@ letter-spacing by comparing the character's stroke types to the adjacent letters
 	 * @return {object} HTML nodes array or false
 	 */
 	KernBot.prototype._toNodes = function(html) {
-		return new DOMParser().parseFromString(html,'text/html').body.childNodes || false;
+		return new DOMParser()
+			.parseFromString(html,'text/html')
+			.body.childNodes || false;
 	}
 	/**
 	 * Checks KernBot sequences to see if the element has already been kerned
@@ -1330,7 +1326,7 @@ letter-spacing by comparing the character's stroke types to the adjacent letters
 	// ===========================================================================
 	/**
 	 * Loops through the nodePairs and write them to the input ID element
-	 * @return {action} write HTML string to the innerHTML of the input ID element
+	 * @return f(x) this._updateElementHTML - update KernBot output html with nodePairs
 	 */
 	KernBot.prototype.writeNodePairsToHTML = function() {
 		// vars
@@ -1340,6 +1336,7 @@ letter-spacing by comparing the character's stroke types to the adjacent letters
 			// vars
 			let elm = this.nodePairs[i],
 				tag = elm.context.tagName.toLowerCase();
+			// start list item
 			HTMLstring += "<li>";
 				HTMLstring += "<" + tag + ">";
 					HTMLstring += "“";
@@ -1355,15 +1352,31 @@ letter-spacing by comparing the character's stroke types to the adjacent letters
 				HTMLstring += "<p>";
 					HTMLstring += "HTML context: ";
 					HTMLstring += "&lt;" + tag + "&gt;";
+				HTMLstring += "<br>—————<br>";
+					HTMLstring += "First Char: ";
+					HTMLstring += elm.c1.char;
 				HTMLstring += "<br>";
+					HTMLstring += "Stroke (after): ";
+					HTMLstring += elm.c1.strokes.a.code;
+				HTMLstring += "<br>—————<br>";
+					HTMLstring += "Second Char: ";
+					HTMLstring += elm.c2.char;
+				HTMLstring += "<br>";
+					HTMLstring += "Stroke (before): ";
+					HTMLstring += elm.c2.strokes.b.code;
+				HTMLstring += "<br>—————<br>";
+					HTMLstring += "Char Combination: ";
+					HTMLstring += elm.pair;
+				HTMLstring += "<br>";
+					HTMLstring += "Stroke Combination: ";
+					HTMLstring += elm.c1.strokes.a.code;
+					HTMLstring += elm.c2.strokes.b.code;
+				HTMLstring += "<br>=====<br>";
 					HTMLstring += "Kern Weight: ";
 					HTMLstring += elm.weight;
 				HTMLstring += "<br>";
 					HTMLstring += "Letter Spacing: ";
 					HTMLstring += elm.letterSpace + "";
-				HTMLstring += "<br>";
-					HTMLstring += "Occurrences: ";
-					HTMLstring += elm.count;
 				HTMLstring += "</p>";
 			HTMLstring += "</li>";
 		}
@@ -1446,6 +1459,7 @@ letter-spacing by comparing the character's stroke types to the adjacent letters
 			let sequence = this.sequences[x],
 				nodes = sequence.sequence,
 				context = sequence.context,
+				contextTag = context.tagName.toLowerCase(),
 				hasClass = sequence.context.getAttribute("class") || false,
 				hasId = sequence.context.getAttribute("id") || false;
 			// start of sequence
@@ -1456,19 +1470,68 @@ letter-spacing by comparing the character's stroke types to the adjacent letters
 			HTMLstring += "<br/>";
 			// loop through the sequence nodes
 			for (let i = 0; i < nodes.length; i++) {
-				// context
-				HTMLstring += context.tagName.toLowerCase();
-				// any class or id of that existed on context
-				if (hasId) { HTMLstring += "#"+hasId; }
-				if (hasClass) { HTMLstring += "."+hasClass; }
-				HTMLstring += " ";
+				// check this sequence item type, write correct HTML
+				switch (nodes[i].constructor.name) {
+					// tag to inject
+					case "Tag":
+						// check the tag
+						if(!this.RegExEndTag.test(nodes[i].char)) {
+							// tag vars
+							let tagNode = this._toNodes(nodes[i].char)[0] || false,
+								tag = false;
+							// set tag
+							if (tagNode) { tag = tagNode.tagName.toLowerCase(); }
+							// if tag
+							if (tag) {
+								// the tag context & any class or id of that existed on context
+								HTMLstring += contextTag;
+								if (hasId) { HTMLstring += "#"+hasId; }
+								if (hasClass) { HTMLstring += "."+hasClass; }
+								HTMLstring += " ";
+								// tag element
+								HTMLstring += tag + ".element-" + nodes[i].class.substring(5);
+								HTMLstring += " ";
+								HTMLstring += "{ letter-spacing: 0px; }";
+								HTMLstring += "<br/>";
+							}
+						// is ending tag
+						} else {
+							// commented message
+							HTMLstring += "/* ending tag - skip class .char-";
+							HTMLstring += nodes[i].class.substring(5);
+							HTMLstring += " */";
+							HTMLstring += "<br/>";
+							// break this loop
+							break;
+						}
+						break;
+					// node
+					default:
+						
+						// the span context & any class or id of that existed on context
+						HTMLstring += contextTag;
+						if (hasId) { HTMLstring += "#"+hasId; }
+						if (hasClass) { HTMLstring += "."+hasClass; }
+						HTMLstring += " ";
+
+						// node span
+						HTMLstring += "span."+nodes[i].class+" {";
+						HTMLstring += " ";
+						HTMLstring += "letter-spacing: -" + nodes[i].kerning + "px;";
+						HTMLstring += " ";
+						HTMLstring += "}";
+						HTMLstring += "<br/>";
+						break;
+				}
+
 				// check the type
+				/*
 				if (nodes[i].constructor.name == "Tag" || nodes[i].data.constructor.name == "Element") {
 					// tag vars
 					let tagNode = this._toNodes(nodes[i].char)[0] || false,
 						tag = false;
 					// set tag
-					if (tagNode) { tag = tagNode.tagName.toLowerCase(); }
+					//if (tagNode) { tag = tagNode.tagName.toLowerCase(); }
 					// if tag
 					if (tag) {
 						// tag element
@@ -1477,15 +1540,8 @@ letter-spacing by comparing the character's stroke types to the adjacent letters
 						HTMLstring += "{ letter-spacing: 0px; }";
 						HTMLstring += "<br/>";
 					}
-				} else {
-					// node span
-					HTMLstring += "span."+nodes[i].class+" {";
-					HTMLstring += " ";
-					HTMLstring += "letter-spacing: -" + nodes[i].kerning + "px;";
-					HTMLstring += " ";
-					HTMLstring += "}";
-					HTMLstring += "<br/>";
 				}
+				*/
 			}
 			// next sequence item
 			HTMLstring += "<br/>";
