@@ -194,11 +194,11 @@ RegEx
 	// ===========================================================================
 	const strokes = [
 		new Stroke("n", 0),		// no stroke weight
-		new Stroke("l", 0.5),	// vertical stroke
-		new Stroke("o", 1),		// round stroke
-		new Stroke("u", 2),		// up slant stroke
-		new Stroke("d", 2),		// down slant stroke
-		new Stroke("s", 3),		// special case
+		new Stroke("l", 1),	// vertical stroke
+		new Stroke("o", 2),		// round stroke
+		new Stroke("u", 3),		// up slant stroke
+		new Stroke("d", 3),		// down slant stroke
+		new Stroke("s", 4),		// special case
 	];
 	//	Characters
 	const characters = [
@@ -1188,7 +1188,7 @@ RegEx
 		}
 		console.log(this.characters);
 		// return this
-		//return this._updateElementHTML(this.output, this.characters);
+		return this
 	}
 
 
