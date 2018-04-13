@@ -1,0 +1,55 @@
+/**
+ * KernBot Styles
+ * 
+ * author: @JoeyGrable94
+ */
+
+
+
+/* sequence wrapper (context) */
+.kb-context {
+	border: 0.25px solid red;
+}
+.kb-context:hover,
+.kb-context .kb-char:hover {
+	cursor: pointer;
+}
+
+
+
+/* sequence nodes (all nodes including chars & elements) */
+.kb-context .kb-char {
+	-webkit-box-sizing: border-box; -moz-box-sizing: border-box; box-sizing: border-box;
+}
+.kb-context .kb-char:hover {
+	cursor: pointer;
+}
+
+
+
+/* sequence chars (HTML <tags> & &entities;) */
+.kb-context [class*="elm-"]:hover {
+	border: 0.25px dashed green;
+}
+
+
+
+/* sequence chars (kerned letters) */
+.kb-context [class*="char-"]:hover {
+	border: 0.25px dotted blue;
+}
+
+
+
+/* KB UI actions */
+.chars-strokes {
+	display: grid;
+	grid-template-columns: repeat(4, 1fr);
+	grid-template-rows: repeat(3, 1fr);
+	justify-items: stretch;
+	align-items: stretch;
+	text-align: center;
+}
+
+
+

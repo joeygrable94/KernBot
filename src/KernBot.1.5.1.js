@@ -1,7 +1,7 @@
 /*
 
 Author: Joey Grable
-Version: 1.4.X
+Version: 1.5.X
 GIT: github.com/joeygrable94/KernBot
 
 A javascript library that dynamically kerns characters based on their context.
@@ -17,7 +17,7 @@ RegEx
 
 */
 
-// should KernBot accept jQuery to handle events and/or DOM manipulation?
+// should KernBot accept jQuery to handle events and/or DOM manipulation => NO, wanted an ES6 solution?
 (function(global, undefined) {
 
 	// becuase javascript...
@@ -26,92 +26,275 @@ RegEx
 	// window obj
 	const root = global;
 	const doc = document;
+	const contextClass = "kb-context";
+	const nodeClass = "kb-char";
+
+
+
+
+
+//	HELPER FUNCTIONS (GLOBAL CONTEXT)
+// ===========================================================================
+	/**
+	 * Gets data from a legend
+	 * @param "string" key - the key to search the legend for
+	 * @param "string" property - the legend property to find the key in
+	 * @param [array] legend - the legend to search through
+	 * @return {object} legend[i] - an element by key[i] in the supplied legend
+	 */
+	const _getLegendData = function(key, property, legend) {
+		// output
+		let output = null;
+		// loop through the legend
+		for (let i = 0; i < legend.length; i++) {
+			// check property matches key
+			if (legend[i][property] === key) {
+				// return matching value in legend
+				output = legend[i];
+			}
+		}
+		// check there is an output and return it, or return false
+		return (null !== output) ? output : false;
+	};
+	/**
+	 * Checks if an array contains a value
+	 * @param "string"/{object}/[array] needle — the item being searched for
+	 * @param [array] hayArray - the array to search through
+	 * @return (boolean) T/F
+	 **/
+	const _arrayContains = function(needle, hayArray) {
+		return (hayArray.indexOf(needle) > -1);
+	}
+	/**
+	 * Removes a specified item from an array if it exists
+	 * @param "string"/{object}/[array] item - the item to find and remove
+	 * @param [array] from - the array to remove the item from
+	 * @return 
+	 */
+	const _arrayRemove = function(item, from) {
+		var found = from.indexOf(item);
+		if (found !== -1) {
+			from.splice(found, 1);
+			found = from.indexOf(item);
+		}
+	}
+	/**
+	 * Sorting function
+	 * @param "string" field - the field to sort by
+	 * @param (boolean) reverse - reverse the order? True or False
+	 * @param f(x) primer - the function by which to determine the sort order
+	 * 		EX: array.sort(_sortBy('weight', false, parseInt}));
+	 * @return [array] f(x) - a recursive function that returns the elements sorted
+	 */
+	const _sortBy = function(field, reverse, primer) {
+		// store key
+		let key = primer ?
+			function(x) { return primer(x[field]); } :
+			function(x) { return x[field]; }
+		// reverse the order
+		reverse = !reverse ? 1 : -1;
+		// sort elements recursively
+		return function(a, b) {
+			return a = key(a),
+				   b = key(b),
+				   reverse * ((a > b) - (b > a));
+		}
+	};
+	/**
+	 * Returns true if it is a DOM element
+	 * @param {object} html - an html element to check
+	 * @return (boolean) T/F
+	 */
+	const _isElement = function(html) { return (
+			typeof HTMLElement === "object" ?
+			html instanceof HTMLElement :
+			html && typeof html === "object" && html !== null && html.nodeType === 1 && typeof html.nodeName === "string"
+	)};
+	/**
+	 * Tests whether a given node is inside of a given context
+	 * @param {object} node - the node to start from
+	 * @param {object} context - the context to search for
+	 * @return (boolean) - T/F
+	 */
+	const _isInside = function(node, context) {
+		// loop through each parent
+		for (; node != null; node = node.parentNode) {
+			// if the node's parent matches its context
+			if (node == context) { return true; }
+		}
+		// return false
+		return false;
+	};
+	/**
+	 * Returns if an html element is a DOM node
+	 * @param {object} html - an html element to check if is a DOM node
+	 * @return (boolean) T/F
+	 */
+	 const _isNode = function(html) { return (
+			typeof Node === "object" ?
+			html instanceof Node :
+			html && typeof html === "object" && typeof html.nodeType === "number" && typeof html.nodeName === "string"
+	)};
+	/**
+	 * converts an html string to html nodes
+	 * @param "string" html - an html string to convert to an html element
+	 * @return {object} HTML nodes array or false if can't convert string to node
+	 */
+	const _toNodes = function(html) {
+		return new DOMParser().parseFromString(html,'text/html').body.childNodes || false;
+	};
+	/**
+	 * Updates an elements innerHTML to its kerned sequence data
+	 * @param {object} element - an html element to calculate kerning data
+	 * @param "string" HTML - the html to put in the innerHTML of the element
+	 * @return write the kerned string to the elements HTML
+	 */
+	const _updateElementHTML = function(element, HTML) {
+		// return: write the kerned string to the elements HTML
+		return (element.innerHTML = HTML) ? true : false;
+	};
+	/**
+	 * Returns the specific querySelector string for an element
+	 * @param {object} element - an html element to calculate kerning data
+	 * @return write the kerned string to the elements HTML
+	 */
+	const _getElementTagIDandClasses = function(element) {
+		// gather sequence vars
+		let tag = element.tagName.toLowerCase(),
+			classes = element.classList || false,
+			ids = element.getAttribute("id") || false,
+			querySelector = tag;
+		// set id
+		if (ids) { querySelector += "#"+ids; }
+		// set classes
+		for (let i = 0; classes && i < classes.length; i++) {
+				querySelector += "."+classes[i];
+		}
+		// return querySelector
+		return querySelector;
+	};
+	/**
+	 * builds array of stroke data
+	 * @param [array] array - an array of character or entity objects with defined stroke data (before & after)
+	 * @return [array] output - array of all the characters KernBot is aware of
+	 */
+	const _buildCharacterStrokes = function(chars, strokes) {
+		// return var
+		let output = [];
+		// loop through the characters
+		for (let i = 0; i < chars.length; i++) {
+			// get strokes data
+			let sBefore = _getLegendData(chars[i].b, "code", strokes),
+				sAfter = _getLegendData(chars[i].a, "code", strokes);
+			// add new character to output
+			output.push(new Character(chars[i].char, sBefore, sAfter, chars[i].entity, chars[i].number));
+		}
+		// return output
+		return output;
+	};
+	/**
+	 * builds array of stroke pairs and calculates their kerning weights
+	 * @param [array] this.strokes - the input data of individuals strokes
+	 * @return [array] output - array of every stroke pair
+	 */
+	const _buildStrokePairs = function(strokes) {
+		// output
+		let output = [];
+		// 2D loop through types
+		for (let x = 0; x < strokes.length; x++) {	
+			for (let y = 0; y < strokes.length; y++) {
+				output.push(new StrokePair(strokes[x], strokes[y]));
+			};
+		};
+		// return output
+		return output;
+	};
+
+
 
 
 
 //	CLASSES
 // ===========================================================================
-	// characters
+	/**
+	 * CHARACTERS
+	 * 
+	 * simple Obj with characters and their associated stroke data
+	 */
 	class Character {
 		constructor(char, before, after, entity, number) {
 			this.char = char;
 			this.strokes = {
 				"b": before,
 				"a": after
-			}
+			};
 			this.entity = entity || null;
 			this.number = number || null;
-		}
+		};
 	};
-	// character pairs
+	/**
+	 * CHARACTERPAIRS
+	 * 
+	 * pairs of characters and their associated strokes
+	 */
 	class CharacterPair {
 		constructor(c1, c2, strokeData) {
+			console.log(strokeData);
 			this.pair = c1.char + c2.char;
-			this.c1 = {
-				char: c1.char,
-				strokes: {
-					b: c1.strokes.b,
-					a: c1.strokes.a
-				}
-			};
-			this.c2 = {
-				char: c2.char,
-				strokes: {
-					b: c2.strokes.b,
-					a: c2.strokes.a
-				}
-			};
+			this.c1 = c1;
+			this.c2 = c2;
 			this.kerning = strokeData;
 			this.weight = strokeData.weight;
 			this.letterSpace;
-		}
-		_addLetterSpace(value) { return this.letterSpace = value; }
+		};
+		_addLetterSpace(value) { return this.letterSpace = value; };
 	};
-	// strokes
+	/**
+	 * STROKE
+	 * 
+	 * simple Obj with a stroke code, its associated kerning weight
+	 * and a brief descriptor of the stroke type
+	 */
 	class Stroke {
 		constructor(s, w, desc) {
 			this.code = s;
 			this.weight = w;
 			this.desc = desc;
-		}
+		};
 	};
-	// stroke pairs
+	/**
+	 * STROKEPAIR
+	 * 
+	 * stroke combinations and their calculated kerning weight
+	 */
 	class StrokePair {
 		constructor(s1, s2) {
 			this.key = s1.code + s2.code;
 			this.s1 = s1;
 			this.s2 = s2;
-			this.weight = this.calcKerning();
-		}
-		calcKerning() {
-			return Math.round(this.s1.weight + this.s2.weight);
-		}
-	}
-	// sequences
-	class Sequence {
-		constructor(context, string, nodes, kerned, pairs) {
-			this.context = context;
-			this.string = string;
-			this.nodes = nodes;
-			this.kernedNodes = kerned;
-			this.pairs = pairs;
-			this.isKerned = false;
-		}
-	}
-	// HTML <tags> and &entities; in a sequence
+			this.weight = this.calcWeight();
+		};
+		calcWeight() { return Math.round(this.s1.weight.value + this.s2.weight.value); };
+	};
+	/**
+	 * ELEMENT
+	 * 
+	 * HTML <tags> and &entities; in a sequence
+	 */
 	class Element {
 		constructor(string, elm, start, end, isEntity) {
-			// the original string the entity appears in
-			this.string = string;
-			// the characters
-			this.char = elm;
-			// the start & end index of the element in the original string
-			this.range = [start, end];
-			// entities are rendered, <tags> are not
-			this.isEntity = isEntity || false;
-		}
-	}
-	// nodes in a sequence for a specific context
+			this.string = string;				// the original string the entity appears in
+			this.char = elm;					// the characters
+			this.range = [start, end];			// the start & end index of the element in the original string
+			this.isEntity = isEntity || false;	// entities are rendered, <tags> are not
+		};
+	};
+	/**
+	 * NODE
+	 * 
+	 * nodes in a sequence for a specific context
+	 * contains context and sequence specific kerning data (weight)
+	 */
 	class Node {
 		constructor(context, node, classIndex, isTag=false) {
 			this.context = context;
@@ -121,19 +304,25 @@ RegEx
 			this.data = node;
 			this.isTag = isTag;
 			this.isTagClosure = this._checkIsTagEnd(node, isTag);
-			this.weight = 0;
-			this.kerning = 0;
+			this.weight = new Subject(0);
+			this.kerning = new Subject(0);
 			this.count = 0;
 			this._increaseCount(1);
-		}
+		};
 		// chech if is <tag>, then test if is a closure </tag>
-		_checkIsTagEnd(node, tag) { return tag ? /<\//g.test(node.char) : false; }
+		_checkIsTagEnd(node, tag) { return tag ? /<\//g.test(node.char) : false; };
 		// increase the instance count
-		_increaseCount(val=1) { return this.count += val; }
+		_increaseCount(value=1) { return this.count += value; };
 		// add index to instance
-		_addCharIndex(index) { return this.indexes.push( index ); }
+		_addCharIndex(index) { return this.indexes.push( index ); };
+		// assess weight
+		_setWeight(value) { return this.weight.assess(value); };
+		// assess kerning
+		_setKerning(value) { return this.kerning.assess(value); };
 	};
-	// node pairs
+	/**
+	 * NODEPAIR
+	 */
 	class NodePair {
 		// build pair
 		constructor(context, c1, c2, index) {
@@ -159,32 +348,436 @@ RegEx
 				c2: c2.data.strokes.b.weight,
 				total: c1.data.strokes.a.weight + c2.data.strokes.b.weight
 			}
-			this.kerning = this._calcKerning(context);
+			this.kerning = new Subject(this._calcKerning(context));
 			this.letterSpace = this._setLetterSpace();
 			this.count = 0;
 			// run methods
 			this._increaseCount(1);
-		}
+		};
 		// calc kerning relative to context fontsize
 		_calcKerning(context) {
 			let fontSize = parseFloat(getComputedStyle(context).fontSize);
 			return ((Math.round((this.weight.total*100)/100).toFixed(2) / 100 ) * fontSize);
-		}
+		};
 		// set letter spacing from kerning value
-		_setLetterSpace() {
-			return ("-" + this.kerning.toString().substring(0, 5) + "px");
-		}
+		_setLetterSpace() { return ("-" + this.kerning.value.toString().substring(0, 5) + "px"); };
 		// increase the existance count
-		_increaseCount(val=1) { return this.count += val; }
+		_increaseCount(val=1) { return this.count += val; };
 		// add a pair of indexes of where in a sequence the charPair exists
-		_addCharIndex(pos) { return this.indexes.push([pos, pos+1]); }
+		_addCharIndex(pos) { return this.indexes.push([pos, pos+1]); };
+	};
+	/**
+	 * SEQUENCE
+	 * 
+	 * conains the context, string, and node data
+	 * used by KernBot to kern this sequence
+	 */
+	class Sequence {
+		// constructor
+		constructor(context) {
+			this.context = context;
+			this.string = context.innerHTML;
+			this.nodes = this._convertStringToNodes();
+			this.pairs = this._calcKerningFromNodePairs();
+			this.nodeStrings = this._prepareKernedNodeString();
+			this.isKerned = false;
+		};
+		/**
+		 * Outputs a sequence of nodes (parsed characters, <tags> and &entities;)
+		 * @param {object} context - the COM context (element) the string exists at
+		 * @param "string" string - the string the break down into
+		 * @return [array] output - an ordered sequence of Nodes
+		 */
+		_convertStringToNodes() {
+			// vars
+			let sequence = [],
+				elements = this._parseStringElements(this.string);
+			// outer loop vars
+			let lastElementChar = false,
+				classIndex = 0;
+			// loop through the string
+			for (let i = 0; i < this.string.length; i++) {
+				// loop vars
+				let charNow = _getLegendData(this.string[i], "char", CharacterData) || false,
+					elmNow = this._checkIndexElementsRange(i, elements),
+					elmNext = this._checkIndexElementsRange(i+1, elements),
+					inject = false,
+					seqNode = null;
+				// update the class index
+				classIndex++;
+				// INJECT CHARACTER (NOT ELEMENT)
+				// if not injecting an element and current character exists
+				if (charNow && !elmNow) {
+					// set the char node
+					seqNode = new Node(this.context, charNow, classIndex);
+				}
+				// INJECT ELEMENT (NOT CHARACTER)
+				// START OF ELEMENT: if injecting element next and not NOW
+				if (!elmNow && elmNext) {
+					// save last element char for loop ref
+					lastElementChar = elmNext.char.slice(-1);
+				}
+				// END OF ELEMENT: if injecting now, NOT injecting next, and loop is at last element char
+				if ((elmNow && !elmNext) && (lastElementChar && this.string[i] == lastElementChar)) {
+					// update the class index depending on the injected item length
+					classIndex -= (elmNow.char.length-1);
+					// inject an &entity; now
+					if (elmNow.isEntity) {
+						// get the entity to inject
+						inject = _getLegendData(elmNow.char, "entity", CharacterData)
+							  || _getLegendData(elmNow.char, "number", CharacterData);
+						// set the node for the $entity;
+						seqNode = new Node(this.context, inject, classIndex);
+					// inject an <element> now
+					} else {
+						// set the node for a <tag>
+						seqNode = new Node(this.context, elmNow, classIndex, true);
+					}
+				}
+				// if node exists
+				if (seqNode) {
+					// inject node into sequence
+					sequence.push(seqNode);
+				}
+			}
+			// return sequence
+			return sequence;
+		};
+		/**
+		 * Parses HTML <tags> and &entity; from a string and returns those string elements in an array
+		 * @param "string" string - the string the break down into
+		 * @return [array] output - the elements in the string and associated data
+		 */
+		_parseStringElements(string) {
+			// parser vars
+			let output = [],
+				items = string.match(/<(.|\n|\d)*?>|&(.|\n)*?;|&#(.|\d)*?;/g);
+			// loop through elms
+			for (let i = 0; items && i < items.length; i++) {
+				// splice vars
+				let start = string.indexOf(items[i]),
+					end = start + items[i].length,
+					element = string.slice(start, end),
+					isEntity = /&(.|\n)*?;|&#(.|\d)*?;/g.test(element);
+				// store the element in an array for now
+				output.push(new Element(string, element, start, end, isEntity));
+			}
+			// return array of elements data in the string
+			return output;
+		};
+		/**
+		 * Check if current index is between the indexes of an element to inject
+		 * @param (number) index - a point in a loop
+		 * @param [array] array - the elements to loop through and check their index range
+		 * @return {object} element or (boolean) False - the element that the index belongs to
+		 */
+		_checkIndexElementsRange(index, array) {
+			// loop through the elements
+			for (let i = 0; i < array.length; i++) {
+				// check if current index is between the indexes of an element to inject
+				if (array[i].range[0] <= index && index < array[i].range[1]) {
+					// return the element within range
+					return array[i];
+				}
+			}
+			// return false
+			return false;
+		};
+		/** 
+		 * Looks at node pairs and calculates the first node's letter-spacing
+		 * @param {object} context - the HTML context (element) the string exists at
+		 * @param [array] sequence - the sequence of nodes from input string
+		 * @return [array] nodePairs - all the combinations of nodePairs (node-node) in the sequence
+		 */
+		_calcKerningFromNodePairs() {
+			// output & loop vars
+			let nodePairs = [],
+				before = null;
+			// loop through the sequence
+			for (let i = 0; i < this.nodes.length; i++) {
+				// loop vars
+				let current = this.nodes[i],
+					next = this.nodes[i+1] || false,
+					charPair = false,
+					charNodePair = false,
+					classIndex = i+1;
+
+				//console.log(current);
+
+				// in order to kern, there must be an adjacent character (next)
+				if (next) {
+					// CHAR | CHAR
+					if (!current.isTag && !next.isTag) {
+						// create nodePair
+						charNodePair = new NodePair(this.context, current, next, classIndex);
+						// store node pair to output
+						nodePairs.push(charNodePair);
+						// add char pair kerning data to current sequence node
+						current._setWeight(charNodePair.weight.total);
+						current._setKerning(charNodePair.kerning.value);
+					}
+					// CHAR | TAG
+					if (!current.isTag && next.isTag) {
+						// set the current node to the item before the tag
+						before = current;
+					}
+					// TAG | CHAR + before tag is char
+					if (current.isTag && !next.isTag && before) {
+						// create nodePair
+						charNodePair = new NodePair(this.context, before, next, classIndex);
+						// store node pair to output
+						nodePairs.push(charNodePair);
+						// add char pair kerning data to sequence node
+						before.weight = before.data.strokes.a.weight + next.data.strokes.b.weight;
+						before.kerning = charNodePair.kerning;
+					}
+				}
+			}
+			// return array
+			return nodePairs;
+		};
+		/**
+		 * Prepares a kerned node as an HTML string an returns them in an array
+		 * @param [array] sequence - kerned characters sequence
+		 * @return [array] output - an array of each html element as a string
+		 *         a <span> with class char# and letter-spacing styles
+		 */
+		_prepareKernedNodeString() {
+			// vars
+			let output = [];
+			// loop through the sequence
+			for (let i = 0; i < this.nodes.length; i++) {
+				// vars
+				let currentChar = this.nodes[i];
+				// check this sequence item type, write correct HTML
+				// ELEMENT
+				if (currentChar.isTag) {
+					// element vars, &entity; or <tag>
+					let currentElm = _toNodes(currentChar.char)[0] || false;
+					// if is an html <tag>
+					if (currentElm && _isElement(currentElm)) {
+						// add element class
+						currentElm.classList.add(nodeClass);
+						currentElm.classList.add("elm-" + currentChar.class);
+						// get the start tag of the element
+						currentChar.char = currentElm.outerHTML.match(/<(.|\n|\d)*?>|&(.|\n)*?;|&#(.|\d)*?;/g)[0];
+					}
+					// add element to HTML
+					output.push(currentChar.char);
+				// NODE
+				} else {
+					// inject node into a span wrapper with kerning data
+					let nodeString = "",
+						currentNode = null;
+					nodeString += "<span class=\"" + nodeClass + " char-" + this.nodes[i].class + "\">";
+					nodeString += this.nodes[i].char;
+					nodeString += "</span>";
+					// add element to output
+					output.push(nodeString);
+				}
+			}
+			// return output
+			return output;
+		}
+	};
+	/**
+	 * SUBJECT
+	 * 
+	 * maintains list of observers (any number of Observer objects may observe a Subject)
+	 * lets observer objects subscribe or unsubscribe
+	 * notifies observers when this subject's state changes
+	 */
+	class Subject {
+		// constructor
+		constructor(value, context) {
+			// provided scope or window
+			this.context = context || root;
+			// data handlers | observers | watchers
+			this.observers = [];
+			// assess data
+			this.value = this.assess(value);
+			// return subjects value
+			return this;
+		};
+		// assess the value of the data
+		assess(data) {
+			// TODO: implement a deep search to check if two objects or arrays are the EXACT same??
+			// if a value provided and/or is different from the existing value
+			if (arguments.length && data !== this.value) {
+				// update the subject value
+				this.value = data;
+				// attempt to notify Observers of data changes
+				try {
+					// notify observers up data updates
+					this._getObservers("update", data);
+				} catch(error) {
+					// log errors
+					console.warn(error);
+				}
+			}
+			// return this data
+			return this.value;
+		};
+		// add an Observer f(x) to be notified of Subject data change
+		subscribe(fn, ctx) {
+			// check if a Observer specific context supplied or use Subject context
+			ctx = ctx || this.context;
+			// add input f(x) to handlers array
+			this.observers.push({ fn: fn, context: ctx });
+		};
+		// remove an Observer f(x) that watches this Subject data
+		unsubscribe(fn, ctx) {
+			try {
+				// check if a Observer specific context supplied or use Subject context
+				ctx = ctx || this.context;
+				this._getObservers("remove", fn, ctx);
+			} catch(error) {
+				// log errors
+				console.warn(error);
+			}
+		};
+		// returns the subject observers f(x)
+		_getObservers(action, arg, ctx) {
+			// loop through the observers
+			for (let i = 0; this.observers && i < this.observers.length; i++) {
+				switch (action) {
+					case "remove":
+						if (this.observers[i].fn === arg && this.observers[i].context === ctx) {
+							this.observers.splice(i,1);
+						} else {
+							throw "Subject._getObservers => not a valid observer handler action";
+						}
+						break;
+					case "update":
+						this.observers[i].fn.call(this.observers[i].context, arg);
+						break;
+					default:
+						throw "Subject._getObservers => invalid observer action";
+						break;
+				}
+			}
+		};
+	};
+	/**
+	 * OBSERVER
+	 * 
+	 * watched multiple Subjects (dependecies) for their changes
+	 * when any Subject dependency changes the Observers handler fires
+	 */
+	class Observer {
+		// constructor
+		constructor(dependencies, handler) {
+			// initial value
+			let value = new Subject(handler());
+			// register this handler for each dependency
+			let listener = () => value.assess(handler());
+			dependencies.forEach((dependency) => {
+				dependency.subscribe(listener);
+			});
+			// restrict from manually updating Observer value
+			let getter = () => value;
+			getter.subscribe = value.subscribe;
+			return getter();
+		};
+		/**
+		// constructor
+		constructor(dependencies, handler, context) {
+			// Observer Subject vars
+			this.context = context || this;
+			this.value = handler();
+			this.subject = new Subject(handler(), this.context);
+
+			// create an Observer handler for this Subject handler
+			let listener = () => this.subject.assess(this.value);
+			// register this handler for each dependency
+			dependencies.forEach((dependency) => {
+				dependency.subscribe(listener);
+			});
+
+			// restrict manually updating Observer value
+			let getter = () => this.subject;
+			getter.subscribe = this.subject.subscribe;
+
+			// return getter
+			return getter();
+		};
+		*/
 	}
 
 
 
-//	CONSTANTS
+	/**
+	 * MEDIATOR
+	 * 
+	 * used by KB.UI to mediate event handling
+	 * 
+	 * TODO:
+	 * - add an Eventer.JS to simplify the html code (clean up DOM)
+	 */
+	class Mediator {
+		// constructor
+		constructor() {
+			// types of handlers
+			this.handlers = {
+				all: []		// runs on all actions
+			}
+		};
+		// add a f(x) handler to the Mediator
+		on(type, fn, context=this) {
+			type = type || "all";
+			fn = typeof fn === "function" ? fn: context[fn];
+			if (typeof this.handlers[type] === "undefined") {
+				this.handlers[type] = [];
+			}
+			this.handlers[type].push({ fn: fn, context: context });
+		};
+		// remove a f(x) handler from the Mediator
+		remove(type, fn, context=this) {
+			try {
+				this._getHandlers("remove", type, fn, context);
+			} catch(error) {
+				console.warn(error);
+			}
+		};
+		// act on a handler type, passing along any supplied data
+		act(type, data) {
+			try {
+				this._getHandlers("act", type, data);
+			} catch(error) {
+				console.warn(error);
+			}
+		};
+		// returns the f(x) handlers for a specific Mediator type
+		_getHandlers(action, type, arg, context=this) {
+			type = type || "all";
+			let handlers = this.handlers[type];
+			for (let i = 0; handlers && i < handlers.length; i++) {
+				switch (action) {
+					case "act":
+						handlers[i].fn.call(handlers[i].context, arg);
+						break;
+					case "remove":
+						if (handlers[i].fn === arg && handlers[i].context === context) {
+							handlers.splice(i,1);
+						} else {
+							throw "Mediator._getHandlers => not a valid handler action";
+						}
+						break;
+					default:
+						throw "invalid handler action";
+						break;
+				}
+			}
+		};
+	};
+
+
+
+
+
+//	CHARACTER & STROKE DATA
 // ===========================================================================
-	const strokes = [
+	let StrokeData = [
 		new Stroke("n", 0, "no stroke weight"),
 		new Stroke("l", 1, "vertical stroke"),
 		new Stroke("o", 2, "round stroke"),
@@ -195,7 +788,7 @@ RegEx
 		new Stroke("z", 3.5, "special case 3")
 	];
 	//	Characters
-	const characters = [
+	let CharacterData = [
 		{ "char": " ", "b": "n", "a": "n", "entity": null, "number": "&#32;", },
 		{ "char": "!", "b": "l", "a": "l", "entity": null, "number": "&#33;", },
 		{ "char": "\"", "b": "z", "a": "z", "entity": null, "number": "&#34;", },
@@ -527,19 +1120,26 @@ RegEx
 		{ "char": "♥", "b": "n", "a": "n", "entity": "&hearts;", "number": "&#9829;", },
 		{ "char": "♦", "b": "n", "a": "n", "entity": "&diams;", "number": "&#9830;", },
 	];
+	// build data
+	CharacterData = _buildCharacterStrokes(CharacterData, StrokeData);
+	StrokeData = StrokeData.sort(_sortBy("weight", true, function(a) { return Math.round(a*10); }));
+	let StrokePairs = _buildStrokePairs(StrokeData).sort(_sortBy("weight", true, parseInt));
+	//console.log(CharacterData);
+	//console.log(StrokeData);
+	//console.log(StrokePairs);
+
+
 
 
 
 //	KERNBOT
 // ===========================================================================
 	const KernBot = function(input) {
-		
 		// default vars
-		let selectors = ["h1", "h2", "h3", "h4", "h5", "h6", "p"],
+		let selectors = ["h1","h2","h3","h4","h5","h6","p"],
 			//selectors = "h1",
-			output = null,
+			output = doc.querySelector("#KernBotOutput"),
 			options = {};
-		
 		// set user options — VALIDATION?
 		if (input !== undefined) {
 			// if input selectors, set the options to input value
@@ -549,20 +1149,18 @@ RegEx
 				output = doc.querySelector(input.outputID);
 			}
 		}
-
 		// set options
 		options = {
 			"selectors": selectors,
 			"output": output
-		};
-
+		}
 		// return a new KernBot.init object that initializes the options
-		return new KernBot.init(options, characters, strokes);
-	}
+		return new KernBot.init(options);
+	};
 	/**
 	 * KernBot initialization function
 	 * @param {object} options - the default or user input options for KernBot.
-	 * @param [array] characters - and array of character objects that defines
+	 * @param [array] CharacterData - and array of character objects that defines
 	 *                             the before and after strokes of a character,
 	 *                             also includes the &entity; and &number; code
 	 *                             for parsing a string into a sequence.
@@ -570,269 +1168,99 @@ RegEx
 	 *                             code for the stroke type and its kerning weight.
 	 * @return log KernBot to console
 	 */
-	KernBot.init = function(options, characters, strokes) {
-
-		// vars
-		this.strokes = strokes.sort(this._sortBy("weight", true, function(a) { return Math.round(a*10); }));
-		this.characters = this._buildCharacterStrokes(characters, strokes);
-		this.strokePairs = this._buildStrokePairs(strokes).sort(this._sortBy("weight", true, parseInt));
+	KernBot.init = function(options) {
 
 		// configuration
-		this.selectors = options.selectors;
-		this.output = options.output;
+		let self = this;
+		self.Mediate = new Mediator();
+		self.kbcid = 1;
+		self.output = options.output;
+		
+		// SUBJCETS & OBSERVERS
+		self.sequences = [];
+		self.selectors = new Subject(options.selectors);
+		self.contexts = new Observer([self.selectors], function() {
+			// return gathered contexts
+			return self._gatherSequenceContext(self.selectors.value);
+		});
 
-		// classes
-		this.contextClass = "kb-context";
-		this.nodeClass = "kb-char";
+		/*
+		// add new selector
+		let newSelectors = ["h1", "h2"]
+		// assess new selectors
+		self.selectors.assess(newSelectors);
+		*/
 
-		// data
-		this.contexts = [];
-		this.sequences = [];
-		this.nodes = [];
-		this.nodePairs = [];
-
-		// init operations
-		// gather contexts
-		this.contexts = this._gatherSequenceContext(this.selectors);
 		// for each context
-		this.contexts.forEach((function(element, index) {
+		self.contexts.value.forEach((function(element, index) {
 			// add a unique ID to each context
-			element.setAttribute("id", "kbcid-"+(index+1));
-			// generate sequences
-			this.sequences.push(this._generateSequence(element));
+			element.removeAttribute("id");
+			element.setAttribute("id", "kbcid-"+(self.kbcid));
+			self.kbcid++
+			// add KB context class to element for later tracking in KB.UI
+			element.classList.add(contextClass);
+			// add this sequence to the array of sequences KernBot acts on
+			self.sequences.push(new Sequence(element));
 		// bind each context to this KernBot
-		}).bind(this));
+		}).bind(self));
 
-		// UI key handler
-		this.keysPressed = {};
 
-		// key actions (rules)
-		this.keyActions = {};
-		this.keyActions.root = {
-			"k b Enter":			"initiate KernBot",
-		};
-		this.keyActions.context = {
-			"a":					"add clicked context to KernBot to Kern",
-			"r":					"remove clicked context to KernBot to Kern",
-		};
-		this.keyActions.node = {
-			"k ArrowLeft":			"kern left (decrease weight)",
-			"k ArrowRight":			"kern right (increase weight)",
-		};
+
+
+
+		// SUBSCRIBERS
+		// Selectors
+		self.selectors.subscribe(function() {
+			console.log("selectors array changed");
+		}, self);
+		self.selectors.assess(/* new selectors array */);
+		// Contexts
+		self.contexts.subscribe(function() {
+			console.log("context array changed");
+		}, self);
+		self.contexts.assess(/* new contexts array */);
+
+
+
+
+
+		// UI key handler & key actions (rules)
+		self.keysPressed = {};
+		self.keyActions = {};
+		self.keyActions = {
+			root: {
+				"k b Enter":			"initiate KernBot",
+			},
+			sequence: {
+				"a":					"add clicked context to KernBot Sequences",
+				"r":					"remove clicked context to KernBot Sequence",
+			},
+			node: {
+				"c ArrowLeft":			"go to previous character in sequence",
+				"c ArrowRight":			"go to next character in sequence",
+				"k ArrowLeft":			"kern left (decrease weight)",
+				"k ArrowRight":			"kern right (increase weight)",
+			}
+		}
 
 		// handle document events
-		this.eventsHandler();
+		self.eventsHandler();
 
 		// build UI
-		this.updateUI();
+		self.renderUI();
 
 		// DEBUG
 		console.log("============= INIT =============");
-		console.log(this);
+		console.log(self);
 		console.log("============= RUN =============");
-	}
+	};
 
 
 
-//	HELPER METHODS
+
+
+//	KB METHODS 
 // ===========================================================================
-	/**
-	 * Gets data from a legend
-	 * @param "string" key - the key to search the legend for
-	 * @param "string" property - the legend property to find the key in
-	 * @param [array] legend - the legend to search through
-	 * @return {object} legend[i] - an element by key[i] in the supplied legend
-	 */
-	KernBot.prototype._getLegendData = function(key, property, legend) {
-		// output
-		let output = null;
-		// loop through the legend
-		for (let i = 0; i < legend.length; i++) {
-			// check property matches key
-			if (legend[i][property] === key) {
-				// return matching value in legend
-				output = legend[i];
-			}
-		}
-		// check there is an output and return it, or return false
-		return (null !== output) ? output : false;
-	}
-	/**
-	 * Sorting function
-	 * @param "string" field - the field to sort by
-	 * @param (boolean) reverse - reverse the order? True or False
-	 * @param f(x) primer - the function by which to determine the sort order
-	 * 		EX: array.sort(_sortBy('weight', false, parseInt}));
-	 * @return [array] f(x) - a recursive function that returns the elements sorted
-	 */
-	KernBot.prototype._sortBy = function(field, reverse, primer) {
-		// store key
-		let key = primer ?
-			function(x) { return primer(x[field]); } :
-			function(x) { return x[field]; }
-		// reverse the order
-		reverse = !reverse ? 1 : -1;
-		// sort elements recursively
-		return function(a, b) {
-			return a = key(a),
-				   b = key(b),
-				   reverse * ((a > b) - (b > a));
-		}
-	}
-	/**
-	 * Returns true if it is a DOM element
-	 * @param {object} html - an html element to check
-	 * @return (boolean) T/F
-	 */
-	KernBot.prototype._isElement = function(html) { return (
-			typeof HTMLElement === "object" ?
-			html instanceof HTMLElement :
-			html && typeof html === "object" && html !== null && html.nodeType === 1 && typeof html.nodeName === "string"
-	)}
-	/**
-	 * Tests whether a given node is inside of a given context
-	 * @param {object} node - the node to start from
-	 * @param {object} context - the context to search for
-	 * @return (boolean) - T/F
-	 */
-	KernBot.prototype._isInside = function(node, context) {
-		// loop through each parent
-		for (; node != null; node = node.parentNode) {
-			// if the node's parent matches its context
-			if (node == context) { return true; }
-		}
-		// return false
-		return false;
-	}
-	/**
-	 * Returns if an html element is a DOM node
-	 * @param {object} html - an html element to check if is a DOM node
-	 * @return (boolean) T/F
-	 */
-	 KernBot.prototype._isNode = function(html) { return (
-			typeof Node === "object" ?
-			html instanceof Node :
-			html && typeof html === "object" && typeof html.nodeType === "number" && typeof html.nodeName === "string"
-	)}
-	/**
-	 * converts an html string to html nodes
-	 * @param "string" html - an html string to convert to an html element
-	 * @return {object} HTML nodes array or false if can't convert string to node
-	 */
-	KernBot.prototype._toNodes = function(html) {
-		return new DOMParser().parseFromString(html,'text/html').body.childNodes || false;
-	}
-	/**
-	 * Parses HTML <tags> and &entity; from a string and returns those string elements in an array
-	 * @param "string" string - the string the break down into
-	 * @return [array] output - the elements in the string and associated data
-	 */
-	KernBot.prototype._parseStringElements = function(string) {
-		// parser vars
-		let output = [],
-			items = string.match(/<(.|\n|\d)*?>|&(.|\n)*?;|&#(.|\d)*?;/g);
-		// loop through elms
-		for (let i = 0; items && i < items.length; i++) {
-			// splice vars
-			let start = string.indexOf(items[i]),
-				end = start + items[i].length,
-				element = string.slice(start, end),
-				isEntity = /&(.|\n)*?;|&#(.|\d)*?;/g.test(element);
-			// store the element in an array for now
-			output.push(new Element(string, element, start, end, isEntity));
-		}
-		// return array of elements data in the string
-		return output;
-	}
-	/**
-	 * Check if current index is between the indexes of an element to inject
-	 * @param (number) index - a point in a loop
-	 * @param [array] array - the elements to loop through and check their index range
-	 * @return {object} element or (boolean) False - the element that the index belongs to
-	 */
-	KernBot.prototype._checkIndexElementsRange = function(index, array) {
-		// loop through the elements
-		for (let i = 0; i < array.length; i++) {
-			// check if current index is between the indexes of an element to inject
-			if (array[i].range[0] <= index && index < array[i].range[1]) {
-				// return the element within range
-				return array[i];
-			}
-		}
-		// return false
-		return false;
-	}
-	/**
-	 * Updates an elements innerHTML to its kerned sequence data
-	 * @param {object} element - an html element to calculate kerning data
-	 * @param "string" HTML - the html to put in the innerHTML of the element
-	 * @return write the kerned string to the elements HTML
-	 */
-	KernBot.prototype._updateElementHTML = function(element, HTML) {
-		// return: write the kerned string to the elements HTML
-		return (element.innerHTML = HTML) ? true : false;
-	}
-	/**
-	 * Returns the specific querySelector string for an element
-	 * @param {object} element - an html element to calculate kerning data
-	 * @return write the kerned string to the elements HTML
-	 */
-	KernBot.prototype._getElementTagIDandClasses = function(element) {
-		// gather sequence vars
-		let tag = element.tagName.toLowerCase(),
-			classes = element.classList || false,
-			ids = element.getAttribute("id") || false,
-			querySelector = tag;
-		// set id
-		if (ids) { querySelector += "#"+ids; }
-		// set classes
-		for (let i = 0; classes && i < classes.length; i++) {
-				querySelector += "."+classes[i];
-		}
-		// return querySelector
-		return querySelector;
-	}
-
-
-
-//	KB SPECIFIC METHODS 
-// ===========================================================================
-	/**
-	 * builds array of stroke data
-	 * @param [array] array - an array of character or entity objects with defined stroke data (before & after)
-	 * @return [array] output - array of all the characters KernBot is aware of
-	 */
-	KernBot.prototype._buildCharacterStrokes = function(chars, strokes) {
-		// return var
-		let output = [];
-		// loop through the characters
-		for (let i = 0; i < chars.length; i++) {
-			// get strokes data
-			let sBefore = this._getLegendData(chars[i].b, "code", strokes),
-				sAfter = this._getLegendData(chars[i].a, "code", strokes);
-			// add new character to output
-			output.push(new Character(chars[i].char, sBefore, sAfter, chars[i].entity, chars[i].number));
-		}
-		// return output
-		return output;
-	}
-	/**
-	 * builds array of stroke pairs and calculates their kerning weights
-	 * @param [array] this.strokes - the input data of individuals strokes
-	 * @return [array] output - array of every stroke pair
-	 */
-	KernBot.prototype._buildStrokePairs = function(strokes) {
-		// output
-		let output = [];
-		// 2D loop through types
-		for (let x = 0; x < this.strokes.length; x++) {	
-			for (let y = 0; y < this.strokes.length; y++) {
-				output.push(new StrokePair(this.strokes[x], this.strokes[y]));
-			}
-		}
-		// return output
-		return output;
-	}
 	/**
 	 * returns an array of sequence contexts (HTML elements to kern)
 	 * @param [array] | "string" selectors - selector(s) to get HTML for
@@ -869,177 +1297,7 @@ RegEx
 		}
 		// return output
 		return output;
-	}
-	/**
-	 * Generates kerned sequence for the input DOM elements
-	 * @param {object} element - a DOM element to kern
-	 * @return [array] output - an array of sequences
-	 */
-	KernBot.prototype._generateSequence = function(element) {
-		// add KB context class to element for later tracking in KB.UI
-		element.classList.add(this.contextClass);
-		// prepare sequence nodes
-		let string = element.innerHTML,
-			sequenceNodes = this._convertStringToNodes(element, string),
-			sequenceNodePairs = this._calcKerningFromNodePairs(element, sequenceNodes),
-			kernedNodes = this._prepareKernedNodeString(sequenceNodes);
-		// add this sequence to the array of sequences KernBot acts on
-		return new Sequence(element, string, sequenceNodes, kernedNodes, sequenceNodePairs);
-	}
-	/**
-	 * Outputs a sequence of characters and tags
-	 * @param {object} context - the COM context (element) the string exists at
-	 * @param "string" string - the string the break down into
-	 * @return [array] output - an ordered sequence of Nodes
-	 */
-	KernBot.prototype._convertStringToNodes = function(context, string) {
-		// vars
-		let sequence = [],
-			elements = this._parseStringElements(string);
-		// outer loop vars
-		let lastElementChar = false,
-			classIndex = 0;
-		// loop through the string
-		for (let i = 0; i < string.length; i++) {
-			// loop vars
-			let charNow = this._getLegendData(string[i], "char", this.characters) || false,
-				elmNow = this._checkIndexElementsRange(i, elements),
-				elmNext = this._checkIndexElementsRange(i+1, elements),
-				inject = false,
-				seqNode = null;
-			// update the class index
-			classIndex++;
-			// INJECT CHARACTER (NOT ELEMENT)
-			// if not injecting an element and current character exists
-			if (charNow && !elmNow) {
-				// set the char node
-				seqNode = new Node(context, charNow, classIndex);
-			}
-			// INJECT ELEMENT (NOT CHARACTER)
-			// START OF ELEMENT: if injecting element next and not NOW
-			if (!elmNow && elmNext) {
-				// save last element char for loop ref
-				lastElementChar = elmNext.char.slice(-1);
-			}
-			// END OF ELEMENT: if injecting now, NOT injecting next, and loop is at last element char
-			if ((elmNow && !elmNext) && (lastElementChar && string[i] == lastElementChar)) {
-				// update the class index depending on the injected item length
-				classIndex -= (elmNow.char.length-1);
-				// inject an &entity; now
-				if (elmNow.isEntity) {
-					// get the entity to inject
-					inject = this._getLegendData(elmNow.char, "entity", this.characters)
-						  || this._getLegendData(elmNow.char, "number", this.characters);
-					// set the node for the $entity;
-					seqNode = new Node(context, inject, classIndex);
-				// inject an <element> now
-				} else {
-					// set the node for a <tag>
-					seqNode = new Node(context, elmNow, classIndex, true);
-				}
-			}
-			// if node exists
-			if (seqNode) {
-				// inject node into sequence
-				sequence.push(seqNode);
-			}
-		}
-		// return sequence
-		return sequence;
-	}
-	/** 
-	 * Looks at node pairs and calculates the first node's letter-spacing
-	 * @param {object} context - the HTML context (element) the string exists at
-	 * @param [array] sequence - the sequence of nodes from input string
-	 * @return [array] nodePairs - all the combinations of nodePairs (node-node) in the sequence
-	 */
-	KernBot.prototype._calcKerningFromNodePairs = function(context, sequence) {
-		// output & loop vars
-		let nodePairs = [],
-			before = null;
-		// loop through the sequence
-		for (let i = 0; i < sequence.length; i++) {
-			// loop vars
-			let current = sequence[i],
-				next = sequence[i+1],
-				charPair = false,
-				charNodePair = false,
-				classIndex = i+1;
-			// in order to kern, there must be an adjacent character (next)
-			if (next) {
-				// CHAR | CHAR
-				if (!current.isTag && !next.isTag) {
-					// create nodePair
-					charNodePair = new NodePair(context, current, next, classIndex);
-					// store node pair to output
-					nodePairs.push(charNodePair);
-					// add char pair kerning data to current sequence node
-					current.weight = charNodePair.weight.total;
-					current.kerning = charNodePair.kerning;
-				}
-				// CHAR | TAG
-				if (!current.isTag && next.isTag) {
-					// set the current node to the item before the tag
-					before = current;
-				}
-				// TAG | CHAR + before tag is char
-				if (current.isTag && !next.isTag && before) {
-					// create nodePair
-					charNodePair = new NodePair(context, before, next, classIndex);
-					// store node pair to output
-					nodePairs.push(charNodePair);
-					// add char pair kerning data to sequence node
-					before.weight = before.data.strokes.a.weight + next.data.strokes.b.weight;
-					before.kerning = charNodePair.kerning;
-				}
-			}
-		}
-		// return array
-		return nodePairs;
-	}
-	/**
-	 * Prepares a kerned node as an HTML string an returns them in an array
-	 * @param [array] sequence - kerned characters sequence
-	 * @return [array] output - an array of each html element as a string
-	 *         a <span> with class char# and letter-spacing styles
-	 */
-	KernBot.prototype._prepareKernedNodeString = function(sequence) {
-		// vars
-		let output = [];
-		// loop through the sequence
-		for (let i = 0; i < sequence.length; i++) {
-			// vars
-			let currentChar = sequence[i];
-			// check this sequence item type, write correct HTML
-			// ELEMENT
-			if (currentChar.isTag) {
-				// element vars, &entity; or <tag>
-				let currentElm = this._toNodes(currentChar.char)[0] || false;
-				// if is an html <tag>
-				if (currentElm && this._isElement(currentElm)) {
-					// add element class
-					currentElm.classList.add(this.nodeClass);
-					currentElm.classList.add("elm-" + currentChar.class);
-					// get the start tag of the element
-					currentChar.char = currentElm.outerHTML.match(/<(.|\n|\d)*?>|&(.|\n)*?;|&#(.|\d)*?;/g)[0];
-				}
-				// add element to HTML
-				output.push(currentChar.char);
-			// NODE
-			} else {
-				// inject node into a span wrapper with kerning data
-				let nodeString = "",
-					currentNode = null;
-				nodeString += "<span class=\"" + this.nodeClass + " char-" + sequence[i].class + "\">";
-				nodeString += sequence[i].char;
-				nodeString += "</span>";
-				// add element to output
-				output.push(nodeString);
-			}
-		}
-		// return output
-		return output;
-	}
+	};
 	/**
 	 * Adds the CSS letter-spacing styles to the nodes in the given sequence
 	 * @param [array] sequence - an array of nodes with kerning data
@@ -1058,33 +1316,35 @@ RegEx
 			// if context not yet set — set context from its current child in the loop
 			if (!context) { context = node.context; }
 			// add the context to the selector
-			selector += this._getElementTagIDandClasses(context);
+			selector += _getElementTagIDandClasses(context);
 			// check if tag
 			if (node.isTag && !node.isTagClosure) {
 				// set tag selector
-				let tag = this._toNodes(node.char);
-				selector += " " + this._getElementTagIDandClasses(tag[0]);
+				let tag = _toNodes(node.char);
+				selector += " " + _getElementTagIDandClasses(tag[0]);
 			// check if char
 			} else {
 				// set char node selector
-				selector += " span" + "."+this.nodeClass + ".char-"+node.class;
+				selector += " span" + "."+nodeClass + ".char-"+node.class;
 			}
 			// gather element
 			element = doc.querySelector(selector) || false;
 			// if element is valid DOM element
 			if (element) {
 				// add letter-spacing styles to element
-				element.style.letterSpacing = -node.kerning + "px";
+				element.style.letterSpacing = -node.kerning.value + "px";
 				kerned = true;
 			}
 		}
 		// return if the node styles were kerned
 		return kerned;
-	}
+	};
 
 
 
-//	KB KERNING CONTROLLER
+
+
+//	KB KERNING METHODS
 // ===========================================================================
 	/**
 	 * kern all sequences f(x)
@@ -1094,7 +1354,7 @@ RegEx
 		// loop through all sequences to kern
 		for (let i = 0; i < this.sequences.length; i++) {
 			// update the DOM context of this sequence with the sequence's kerned nodes
-			if (!this.sequences[i].isKerned && this._updateElementHTML(this.sequences[i].context, this.sequences[i].kernedNodes.join(""))) {
+			if (!this.sequences[i].isKerned && _updateElementHTML(this.sequences[i].context, this.sequences[i].nodeStrings.join(""))) {
 				// update this sequence kerned status
 				this.sequences[i].isKerned = true;
 			}
@@ -1110,7 +1370,7 @@ RegEx
 		// loop through all sequences to unkern
 		for (let i = 0; i < this.sequences.length; i++) {
 			// update the DOM context of this kerned sequence with the sequence's original string
-			if (this.sequences[i].isKerned && this._updateElementHTML(this.sequences[i].context, this.sequences[i].string)) {
+			if (this.sequences[i].isKerned && _updateElementHTML(this.sequences[i].context, this.sequences[i].string)) {
 				// update this sequence kerned status
 				this.sequences[i].isKerned = false;
 			}
@@ -1125,7 +1385,7 @@ RegEx
 	KernBot.prototype.kern = function(sequence) {
 		// loop through all sequences to kern
 		// update the DOM context of this sequence with the sequence's kerned nodes
-		if (!sequence.isKerned && this._updateElementHTML(sequence.context, sequence.kernedNodes.join(""))) {
+		if (!sequence.isKerned && _updateElementHTML(sequence.context, sequence.nodeStrings.join(""))) {
 			// update this sequence kerned status
 			sequence.isKerned = true;
 		}
@@ -1138,13 +1398,15 @@ RegEx
 	 */
 	KernBot.prototype.unkern = function(sequence) {
 		// update the DOM context of this kerned sequence with the sequence's original string
-		if (sequence.isKerned && this._updateElementHTML(sequence.context, sequence.string)) {
+		if (sequence.isKerned && _updateElementHTML(sequence.context, sequence.string)) {
 			// update this sequence kerned status
 			sequence.isKerned = false;
 		}
 		// return this
 		return this;
 	}
+
+
 
 
 
@@ -1155,59 +1417,46 @@ RegEx
 	 * updates the UI environment
 	 * @return 'this' - makes method chainable
 	 */
-	KernBot.prototype.updateUI = function() {
-
+	KernBot.prototype.renderUI = function() {
 		// loop through the sequences KernBot is acting on
 		for (let i = 0; i < this.sequences.length; i++) {
-			// update the letter spacing of the sequence nodes
-			this._styleSequenceLetterSpacing(this.sequences[i].nodes);
+			if (this.sequences[i].isKerned) {
+				// update the letter spacing of the sequence nodes
+				this._styleSequenceLetterSpacing(this.sequences[i].nodes);
+			}
 		}
-
 		// return this
 		console.log(this);
 		return this;
-	}
-	/*
-	KernBot.prototype.calibrateStrokes = function() {}
-	KernBot.prototype.calibrateStrokePairs = function() {}
-	KernBot.prototype.calibrateCharacters = function() {}
-	KernBot.prototype.addSelector = function() {
-		// add selector to selectors
-		// add context to contexts
-		// calc sequence nodes
-		// update UI
-	}
+	};
 
-	KernBot.prototype.removeSelector = function() {}
-	KernBot.prototype.viewAllSequences = function() {}
-	*/
+
 
 
 
 // UI SEQUENCE SPECIFIC METHODS
 // ===========================================================================
-	/*
-	KernBot.prototype.viewSequenceData = function() {}
-	KernBot.prototype.analyzeNodes = function(sequence) {}
-	KernBot.prototype.outputHTML = function(sequence) {}
-	KernBot.prototype.outputCSS = function(sequence) {}
-	*/
+
+
 
 
 
 // EVENT HANDLER
 // ===========================================================================
-	/**
-	 * 
-	 * 
-	 */
 	KernBot.prototype.eventsHandler = function() {
 
 		// ROOT (window)
 		// KEYDOWN
 		root.addEventListener("keydown", (function(event) {
+			// prevent default
+			//event.preventDefault();
 			// add the current key pressed to keys map
 			this.keysPressed[event.key] = true;
+			
+			// test which key(s) are pressed for UI
+			//console.log(this.testKeys("c", "ArrowRight"), "go to next character");
+			//console.log(this.testKeys("c", "ArrowLeft"), "go to previous character");
+
 		}).bind(this));
 
 		// KEYUP
@@ -1216,68 +1465,28 @@ RegEx
 			this.keysPressed[event.key] = false;
 		}).bind(this));
 
-
-		// DOCUMENT
-		// CLICK
-		/*
-		doc.addEventListener("click", (function(event) {
-			console.log(event.target);
-			console.log(this.keysPressed);
-		}).bind(this));
-		*/
-
-
-		// test which key(s) are pressed for UI
-		//console.log(this.testKeys('k');
-		//console.log(this.testKeys('Shift', 'ArrowRight'));
-		//console.log(this.testKeys('Shift', 'ArrowLeft'));
-
-
 		// CONTEXTS
 		// loop through each sequence context
-		for (let i = 0; i < this.contexts.length; i++) {
-			
+		for (let i = 0; i < this.contexts.value.length; i++) {
 			// vars
-			let context = this.contexts[i];
-			
+			let context = this.contexts.value[i];
 			// CLICK STATE
 			// add a click event listener to each context
 			context.addEventListener("click", (function(event) {
-				
 				// void defualt action
 				event.preventDefault();
-
 				// get sequence to analyze
-				let seq = this._getLegendData(context, "context", this.sequences);
-				
+				let seq = _getLegendData(context, "context", this.sequences);
 				// kern or unkern sequence
 				if (!seq.isKerned) {
-					this.kern(seq).updateUI();
+					this.kern(seq).renderUI();
 				} else {
-					this.unkern(seq).updateUI();
+					this.unkern(seq).renderUI();
 				}
-
 			// bind click function to 'this' kernbot
 			}).bind(this));
-
-
-			// NODES
-			// HOVER
-			context.addEventListener("mouseover", function(event) {
-				// only hover over child nodes
-				if (event.target !== this) {
-					//console.log(event.target);
-				}
-			});
-			context.addEventListener("mouseout", function(event) {
-				// only hover over child nodes
-				if (event.target !== this) {
-					//console.log(event.target);
-				}
-			});
-
 		}
-	}
+	};
 	/**
 	 * Tests if the key or keys are being tracked by KB key handler
 	 * @param "string" check - the key to check if pressed
@@ -1290,7 +1499,9 @@ RegEx
 			if(!this.testKey(keylist[i])) { return false; }
 		}
 		return true;
-	}
+	};
+
+
 
 
 
@@ -1302,6 +1513,10 @@ RegEx
 	global.KernBot = global.$KB = KernBot;
 	// return true if everything loaded properly
 	return true;
+
+
+
+
 
 // execute IIFE and pass dependencies
 } (window, undefined));

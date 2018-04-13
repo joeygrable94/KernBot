@@ -16,6 +16,7 @@
 	<!-- css -->
 	<link rel="stylesheet" type="text/css" href="./css/gridinator.css">
 	<link rel="stylesheet" type="text/css" href="./css/stylesheet.css">
+	<link rel="stylesheet" type="text/css" href="./css/KernBot.styles.css">
 
 	<!-- google analytics -->
 	<script async src="https://www.googletagmanager.com/gtag/js?id=UA-39598141-2"></script>
@@ -27,25 +28,75 @@
 	<div id="KB-grid">
 
 		<div id="wrapper">
-			<h1 class="kern-bot">Hello &harr; World!<br>My name &amp; is <a class="kernbot" href="https://github.com/joeygrable94/KernBot" target="_blank" alt="view on github">KernBot</a>.</h1>
+			<h1 class="kern-bot">Hello &harr; World!<br>My name &amp; is <a class="kb-link" href="https://github.com/joeygrable94/KernBot" target="_blank" alt="view on github">KernBot</a>.</h1>
 			<hr>
-			<h2 class="kern-bot">I like to take a string of text and turn it into a sequence with kerned letters.</h2>
+			<h2 id="kernID" class="kern-bot">I like to take a string of text and turn it into a sequence with kerned letters.</h2>
 			<h3 class="kern-bot">I even have the capability to track the individual characters & character pairs in each sequence, then output my data to HTML and CSS.</h3>
 			<p class="kern-Para">Wanna learn how I work? <a href="https://github.com/joeygrable94/KernBot" target="_blank">View the project on GitHub</a> to learn more.</p>
 		</div>
 
 		<div id="KernBotOutput">
 			<div class="btn-group btn-block">
-				<button class="btn tertiary" onclick="runKernBot(true)">Kern Text</button>
-				<button class="btn error" onclick="runKernBot(false)">Un-Kern Text</button>
-				<!--
-				<button class="btn" onclick="calibrateKernBot()">Calibrate KernBot</button>
-				<button class="btn" onclick="analyzeSequences()">Analyze The Kerning</button>
-				<button class="btn" onclick="viewOutputHTML()">View KernBot HTML</button>
-				<button class="btn" onclick="viewOutputCSS()">View KernBot CSS</button>
-				-->
+				<button class="btn primary" onclick="runKernBot(true)">Kern All</button>
+				<button class="btn secondary" onclick="runKernBot(false)">Un-Kern All</button>
 			</div>
 			<div class="content">
+				<h3>Controls</h3>
+				<ol>
+					<li>Click on a sequence to kern and unkern that specific context.</li>
+				</ol>
+				<form id="kb-actions">
+					
+					<div class="chars-strokes">
+					</div>
+
+					<!-- root actions 
+					<label>Contexts that KernBot acts on (css selectors)</label>
+					<textarea id="kb-selectors" name="kba-selectors" placeholder="h1, h2, .selectors"></textarea>
+					-->
+					<!-- context actions 
+					<label>Current Context: </label>
+					<input type="text" name="" value="" disabled="disabled">
+					<div class="btn-group btn-block">
+						<input type="button" name="" class="btn default" value="Kern Sequence">
+						<input type="button" name="" class="btn default" value="Un-Kern Sequence">
+					</div>
+					<div class="btn-group btn-block">
+						<input type="button" name="" class="btn default" value="Output HTML">
+						<input type="button" name="" class="btn default" value="Output CSS">
+					</div>
+					-->
+					<!-- chars 
+					<label>Current Character: </label>
+					<input type="text" name="" value="" disabled="disabled">
+					<label>Kern Weight</label>
+					<input id="kba-weight" name="kba-weight" type="number" value="0">
+					-->
+					<!-- strokes 
+					<label>Stroke Shape (left)</label>
+					<select id="kba-stroke-left" name="kba-stroke-left">
+						<option value="0" selected>n</option>
+						<option value="1">l (1)</option>
+						<option value="1.5">x (1.5)</option>
+						<option value="2">o (2)</option>
+						<option value="2.5">y (2.5)</option>
+						<option value="3">u (3)</option>
+						<option value="3">d (3)</option>
+						<option value="3.5">z (3.5)</option>
+					</select>
+					<label>Stroke Shape (right)</label>
+					<select id="kba-stroke-right" name="kba-stroke-right">
+						<option value="0" selected>n</option>
+						<option value="1">l (1)</option>
+						<option value="1.5">x (1.5)</option>
+						<option value="2">o (2)</option>
+						<option value="2.5">y (2.5)</option>
+						<option value="3">u (3)</option>
+						<option value="3">d (3)</option>
+						<option value="3.5">z (3.5)</option>
+					</select>
+					-->
+				</form>
 			</div>
 		</div>
 	</div>
@@ -53,24 +104,16 @@
 
 
 <!-- KERNBOT -->
-<script type="text/javascript" src="./src/KernBot.1.4.0.js"></script>
+<script type="text/javascript" src="./src/KernBot.1.5.2.js"></script>
 <script type="text/javascript">
 
 // load KernBot
-let test = new KernBot({
-	outputID: "#KernBotOutput"
-});
-
-// calibrate
-function calibrateKernBot() { test.calibrate(); }
+let test = new KernBot();
 
 // running KernBot
-function runKernBot(kern) { return kern ? test.kern() : test.unkern(); };
-
-// analyze Nodes to HTML
-function analyzeSequences() {	test.writeNodePairsToHTML();	};
-function viewOutputHTML() {		test.outputSequencesHTML();	}
-function viewOutputCSS() {		test.outputSequencesCSS();	}
+function runKernBot(kern) {
+	return kern ? test.kernAll() : test.unkernAll();
+};
 
 </script>
 </body>
